@@ -115,8 +115,8 @@ export const RegisterPage: React.FC = () => {
               name="email"
               value={formData.email}
               onChange={handleChange}
-              placeholder="e.g. ramesh@example.com"
-              className="w-full bg-slate-50 border border-slate-300 rounded-lg px-3.5 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-apsrtc-primary"
+              placeholder="e.g. passenger@apsrtc.in"
+              className="w-full bg-slate-50 border border-slate-300 rounded-lg px-3.5 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600"
               required
             />
           </div>
@@ -134,7 +134,7 @@ export const RegisterPage: React.FC = () => {
                 onChange={handleChange}
                 placeholder="9848012345"
                 maxLength={10}
-                className="w-full bg-slate-50 border border-slate-300 rounded-r-lg px-3.5 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-apsrtc-primary"
+                className="w-full bg-slate-50 border border-slate-300 rounded-r-lg px-3.5 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 font-mono"
                 required
               />
             </div>
@@ -149,7 +149,7 @@ export const RegisterPage: React.FC = () => {
                 value={formData.password}
                 onChange={handleChange}
                 placeholder="At least 8 chars, 1 uppercase, 1 digit, 1 special"
-                className="w-full bg-slate-50 border border-slate-300 rounded-lg px-3.5 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-apsrtc-primary pr-10"
+                className="w-full bg-slate-50 border border-slate-300 rounded-lg px-3.5 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 pr-10"
                 required
               />
               <button
@@ -170,7 +170,7 @@ export const RegisterPage: React.FC = () => {
               value={formData.confirm_password}
               onChange={handleChange}
               placeholder="Re-enter password"
-              className="w-full bg-slate-50 border border-slate-300 rounded-lg px-3.5 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-apsrtc-primary"
+              className="w-full bg-slate-50 border border-slate-300 rounded-lg px-3.5 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600"
               required
             />
           </div>
@@ -182,16 +182,16 @@ export const RegisterPage: React.FC = () => {
               name="terms_accepted"
               checked={formData.terms_accepted}
               onChange={handleChange}
-              className="mt-1 h-4 w-4 text-apsrtc-primary border-slate-300 rounded focus:ring-apsrtc-primary"
+              className="mt-1 h-4 w-4 text-blue-600 border-slate-300 rounded focus:ring-blue-600"
               required
             />
             <label htmlFor="terms_accepted" className="text-xs text-slate-600">
               I agree to the{' '}
-              <Link to="/terms" target="_blank" className="text-apsrtc-primary underline">
+              <Link to="/terms" target="_blank" className="text-blue-600 underline">
                 Terms of Service
               </Link>{' '}
               and acknowledge the{' '}
-              <Link to="/privacy" target="_blank" className="text-apsrtc-primary underline">
+              <Link to="/privacy" target="_blank" className="text-blue-600 underline">
                 Privacy Policy
               </Link>.
             </label>
@@ -200,7 +200,7 @@ export const RegisterPage: React.FC = () => {
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full bg-apsrtc-primary hover:bg-apsrtc-primaryDark text-white font-semibold py-2.5 rounded-lg flex items-center justify-center space-x-2 transition shadow-sm disabled:opacity-50 mt-2"
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 rounded-lg flex items-center justify-center space-x-2 transition shadow-xs disabled:opacity-50 mt-2"
           >
             {isLoading ? (
               <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
@@ -215,7 +215,7 @@ export const RegisterPage: React.FC = () => {
 
         <div className="mt-5 pt-4 border-t border-slate-100 text-center text-xs text-slate-600">
           Already registered?{' '}
-          <Link to="/login" className="text-apsrtc-primary font-bold hover:underline">
+          <Link to="/login" className="text-blue-600 font-bold hover:underline">
             Sign In here
           </Link>
         </div>

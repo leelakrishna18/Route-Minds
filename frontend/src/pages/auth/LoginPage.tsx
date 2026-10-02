@@ -139,15 +139,9 @@ export const LoginPage: React.FC = () => {
 
         <div className="mt-6 pt-6 border-t border-slate-100 text-center text-xs text-slate-600">
           Don't have an account?{' '}
-          <Link to="/register" className="text-apsrtc-primary font-bold hover:underline">
+          <Link to="/register" className="text-blue-600 font-bold hover:underline">
             Register here
           </Link>
-        </div>
-
-        <div className="mt-4 bg-slate-50 p-3 rounded-lg text-[11px] text-slate-500 border border-slate-200">
-          <span className="font-semibold text-slate-700">Demo Passenger Login:</span><br />
-          Email: <code className="text-apsrtc-primary font-mono font-bold">passenger@example.com</code><br />
-          Password: <code className="text-apsrtc-primary font-mono font-bold">Passenger@2026</code>
         </div>
       </div>
     </div>

@@ -113,6 +113,9 @@ def create_service():
         bus_number=data.get("bus_number"),
         bus_type=bus_type,
         route_id=route_id,
+        fare=data.get("fare", "Standard Fare"),
+        seating_capacity=int(data.get("seating_capacity", 49)) if data.get("seating_capacity") else 49,
+        depot_name=data.get("depot_name", "Eluru Depot"),
         operating_days=operating_days,
         source_of_information=source_of_information,
         verification_status=verification_status,
@@ -153,6 +156,12 @@ def update_service(service_id):
         service.bus_type = data["bus_type"]
     if "bus_number" in data:
         service.bus_number = data["bus_number"]
+    if "fare" in data:
+        service.fare = data["fare"]
+    if "seating_capacity" in data:
+        service.seating_capacity = int(data["seating_capacity"]) if data["seating_capacity"] else 49
+    if "depot_name" in data:
+        service.depot_name = data["depot_name"]
     if "operating_days" in data:
         service.operating_days = data["operating_days"]
     if "source_of_information" in data:

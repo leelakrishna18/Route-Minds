@@ -84,54 +84,100 @@ export const Navbar: React.FC = () => {
 
           {/* Desktop Links */}
           <nav className="hidden md:flex items-center space-x-1">
-            <Link
-              to="/schedules"
-              className={`flex items-center px-3 py-2 rounded-md text-sm font-medium transition ${
-                isActive('/schedules') ? 'bg-blue-50 text-apsrtc-primary font-semibold' : 'text-slate-700 hover:bg-slate-100'
-              }`}
-            >
-              <Bus className="w-4 h-4 mr-1.5 text-apsrtc-primary" />
-              {t('busSchedules')}
-            </Link>
+            {isAdmin ? (
+              <>
+                <Link
+                  to="/admin/dashboard"
+                  className={`flex items-center px-3 py-2 rounded-md text-sm font-medium transition ${
+                    isActive('/admin/dashboard') ? 'bg-blue-50 text-blue-700 font-semibold' : 'text-slate-700 hover:bg-slate-100'
+                  }`}
+                >
+                  <LayoutDashboard className="w-4 h-4 mr-1.5 text-blue-600" />
+                  Operations Center
+                </Link>
 
-            <Link
-              to="/safety"
-              className={`flex items-center px-3 py-2 rounded-md text-sm font-medium transition ${
-                isActive('/safety') ? 'bg-rose-50 text-rose-700 font-semibold' : 'text-slate-700 hover:bg-slate-100'
-              }`}
-            >
-              <Shield className="w-4 h-4 mr-1.5 text-rose-600" />
-              {t('womensSafety')}
-            </Link>
+                <Link
+                  to="/admin/timetables"
+                  className={`flex items-center px-3 py-2 rounded-md text-sm font-medium transition ${
+                    isActive('/admin/timetables') ? 'bg-blue-50 text-blue-700 font-semibold' : 'text-slate-700 hover:bg-slate-100'
+                  }`}
+                >
+                  <Bus className="w-4 h-4 mr-1.5 text-blue-600" />
+                  Fleet & Timetables
+                </Link>
 
-            <Link
-              to="/complaints"
-              className={`flex items-center px-3 py-2 rounded-md text-sm font-medium transition ${
-                isActive('/complaints') ? 'bg-amber-50 text-amber-700 font-semibold' : 'text-slate-700 hover:bg-slate-100'
-              }`}
-            >
-              <MessageSquareWarning className="w-4 h-4 mr-1.5 text-amber-600" />
-              {t('complaints')}
-            </Link>
+                <Link
+                  to="/admin/routes"
+                  className={`flex items-center px-3 py-2 rounded-md text-sm font-medium transition ${
+                    isActive('/admin/routes') ? 'bg-blue-50 text-blue-700 font-semibold' : 'text-slate-700 hover:bg-slate-100'
+                  }`}
+                >
+                  <MessageSquare className="w-4 h-4 mr-1.5 text-blue-600" />
+                  Routes & SMS Codes
+                </Link>
 
-            <Link
-              to="/sms"
-              className={`flex items-center px-3 py-2 rounded-md text-sm font-medium transition ${
-                isActive('/sms') ? 'bg-emerald-50 text-emerald-700 font-semibold' : 'text-slate-700 hover:bg-slate-100'
-              }`}
-            >
-              <MessageSquare className="w-4 h-4 mr-1.5 text-emerald-600" />
-              {t('smsRoute')}
-            </Link>
+                <Link
+                  to="/admin/users"
+                  className={`flex items-center px-3 py-2 rounded-md text-sm font-medium transition ${
+                    isActive('/admin/users') ? 'bg-blue-50 text-blue-700 font-semibold' : 'text-slate-700 hover:bg-slate-100'
+                  }`}
+                >
+                  <UserIcon className="w-4 h-4 mr-1.5 text-blue-600" />
+                  Passenger Registry
+                </Link>
+              </>
+            ) : (
+              <>
+                <Link
+                  to="/schedules"
+                  className={`flex items-center px-3 py-2 rounded-md text-sm font-medium transition ${
+                    isActive('/schedules') ? 'bg-blue-50 text-blue-700 font-semibold' : 'text-slate-700 hover:bg-slate-100'
+                  }`}
+                >
+                  <Bus className="w-4 h-4 mr-1.5 text-blue-600" />
+                  {t('busSchedules')}
+                </Link>
 
-            <button
-              type="button"
-              onClick={openAssistant}
-              className="flex items-center px-3 py-1.5 rounded-lg text-sm font-semibold transition bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 shadow-2xs"
-            >
-              <Mic className="w-4 h-4 mr-1.5 text-purple-600 animate-pulse" />
-              <span>{t('voiceAssistant')}</span>
-            </button>
+                <Link
+                  to="/safety"
+                  className={`flex items-center px-3 py-2 rounded-md text-sm font-medium transition ${
+                    isActive('/safety') ? 'bg-blue-50 text-blue-700 font-semibold' : 'text-slate-700 hover:bg-slate-100'
+                  }`}
+                >
+                  <Shield className="w-4 h-4 mr-1.5 text-blue-600" />
+                  {t('womensSafety')}
+                </Link>
+
+                <Link
+                  to="/complaints"
+                  className={`flex items-center px-3 py-2 rounded-md text-sm font-medium transition ${
+                    isActive('/complaints') ? 'bg-blue-50 text-blue-700 font-semibold' : 'text-slate-700 hover:bg-slate-100'
+                  }`}
+                >
+                  <MessageSquareWarning className="w-4 h-4 mr-1.5 text-blue-600" />
+                  {t('complaints')}
+                </Link>
+
+                <Link
+                  to="/sms"
+                  className={`flex items-center px-3 py-2 rounded-md text-sm font-medium transition ${
+                    isActive('/sms') ? 'bg-blue-50 text-blue-700 font-semibold' : 'text-slate-700 hover:bg-slate-100'
+                  }`}
+                >
+                  <MessageSquare className="w-4 h-4 mr-1.5 text-blue-600" />
+                  {t('smsRoute')}
+                </Link>
+
+                <button
+                  type="button"
+                  onClick={openAssistant}
+                  className="flex items-center px-3 py-1.5 rounded-lg text-sm font-semibold transition bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200"
+                >
+                  <Mic className="w-4 h-4 mr-1.5 text-blue-600 animate-pulse" />
+                  <span>{t('voiceAssistant')}</span>
+                </button>
+              </>
+            )}
           </nav>
 
           {/* User profile / Auth buttons */}
@@ -197,53 +243,92 @@ export const Navbar: React.FC = () => {
       {/* Mobile dropdown menu */}
       {mobileMenuOpen && (
         <div className="md:hidden bg-white border-t border-slate-200 px-4 pt-2 pb-6 space-y-2 shadow-lg">
-          <Link
-            to="/schedules"
-            onClick={() => setMobileMenuOpen(false)}
-            className="flex items-center px-3 py-2.5 rounded-md text-base font-medium text-slate-800 hover:bg-blue-50"
-          >
-            <Bus className="w-5 h-5 mr-3 text-apsrtc-primary" />
-            {t('busSchedules')}
-          </Link>
+          {isAdmin ? (
+            <>
+              <Link
+                to="/admin/dashboard"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center px-3 py-2.5 rounded-md text-base font-medium text-slate-800 hover:bg-blue-50"
+              >
+                <LayoutDashboard className="w-5 h-5 mr-3 text-blue-600" />
+                Operations Center
+              </Link>
+              <Link
+                to="/admin/timetables"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center px-3 py-2.5 rounded-md text-base font-medium text-slate-800 hover:bg-blue-50"
+              >
+                <Bus className="w-5 h-5 mr-3 text-blue-600" />
+                Fleet & Timetables
+              </Link>
+              <Link
+                to="/admin/routes"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center px-3 py-2.5 rounded-md text-base font-medium text-slate-800 hover:bg-blue-50"
+              >
+                <MessageSquare className="w-5 h-5 mr-3 text-blue-600" />
+                Routes & SMS Codes
+              </Link>
+              <Link
+                to="/admin/users"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center px-3 py-2.5 rounded-md text-base font-medium text-slate-800 hover:bg-blue-50"
+              >
+                <UserIcon className="w-5 h-5 mr-3 text-blue-600" />
+                Passenger Registry
+              </Link>
+            </>
+          ) : (
+            <>
+              <Link
+                to="/schedules"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center px-3 py-2.5 rounded-md text-base font-medium text-slate-800 hover:bg-blue-50"
+              >
+                <Bus className="w-5 h-5 mr-3 text-blue-600" />
+                {t('busSchedules')}
+              </Link>
 
-          <Link
-            to="/safety"
-            onClick={() => setMobileMenuOpen(false)}
-            className="flex items-center px-3 py-2.5 rounded-md text-base font-medium text-slate-800 hover:bg-rose-50"
-          >
-            <Shield className="w-5 h-5 mr-3 text-rose-600" />
-            {t('womensSafety')}
-          </Link>
+              <Link
+                to="/safety"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center px-3 py-2.5 rounded-md text-base font-medium text-slate-800 hover:bg-blue-50"
+              >
+                <Shield className="w-5 h-5 mr-3 text-blue-600" />
+                {t('womensSafety')}
+              </Link>
 
-          <Link
-            to="/complaints"
-            onClick={() => setMobileMenuOpen(false)}
-            className="flex items-center px-3 py-2.5 rounded-md text-base font-medium text-slate-800 hover:bg-amber-50"
-          >
-            <MessageSquareWarning className="w-5 h-5 mr-3 text-amber-600" />
-            {t('complaints')}
-          </Link>
+              <Link
+                to="/complaints"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center px-3 py-2.5 rounded-md text-base font-medium text-slate-800 hover:bg-blue-50"
+              >
+                <MessageSquareWarning className="w-5 h-5 mr-3 text-blue-600" />
+                {t('complaints')}
+              </Link>
 
-          <Link
-            to="/sms"
-            onClick={() => setMobileMenuOpen(false)}
-            className="flex items-center px-3 py-2.5 rounded-md text-base font-medium text-slate-800 hover:bg-emerald-50"
-          >
-            <MessageSquare className="w-5 h-5 mr-3 text-emerald-600" />
-            {t('smsRoute')}
-          </Link>
+              <Link
+                to="/sms"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center px-3 py-2.5 rounded-md text-base font-medium text-slate-800 hover:bg-blue-50"
+              >
+                <MessageSquare className="w-5 h-5 mr-3 text-blue-600" />
+                {t('smsRoute')}
+              </Link>
 
-          <button
-            type="button"
-            onClick={() => {
-              setMobileMenuOpen(false);
-              openAssistant();
-            }}
-            className="flex items-center w-full px-3 py-2.5 rounded-md text-base font-medium text-purple-700 hover:bg-purple-50"
-          >
-            <Mic className="w-5 h-5 mr-3 text-purple-600 animate-pulse" />
-            <span>{t('voiceAssistant')}</span>
-          </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  openAssistant();
+                }}
+                className="flex items-center w-full px-3 py-2.5 rounded-md text-base font-medium text-blue-700 hover:bg-blue-50"
+              >
+                <Mic className="w-5 h-5 mr-3 text-blue-600 animate-pulse" />
+                <span>{t('voiceAssistant')}</span>
+              </button>
+            </>
+          )}
 
           <div className="border-t border-slate-200 pt-3">
             {isAuthenticated ? (

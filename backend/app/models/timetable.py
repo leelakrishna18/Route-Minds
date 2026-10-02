@@ -104,6 +104,11 @@ class BusService(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
 
+    # Additional Fleet / Commercial Details
+    fare = db.Column(db.String(50), nullable=True, default="Standard Fare")
+    seating_capacity = db.Column(db.Integer, nullable=True, default=49)
+    depot_name = db.Column(db.String(100), nullable=True, default="Eluru Depot")
+
     # Schedule entries per stop
     timetable_entries = db.relationship("TimetableEntry", backref="service", cascade="all, delete-orphan", lazy="joined")
 
@@ -113,6 +118,9 @@ class BusService(db.Model):
             "service_number": self.service_number,
             "bus_number": self.bus_number,
             "bus_type": self.bus_type,
+            "fare": self.fare,
+            "seating_capacity": self.seating_capacity,
+            "depot_name": self.depot_name,
             "route_id": self.route_id,
             "route_name": self.route.route_name if self.route else None,
             "origin": self.route.source_stop.name if self.route and self.route.source_stop else None,

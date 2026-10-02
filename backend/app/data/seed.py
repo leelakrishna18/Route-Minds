@@ -34,64 +34,7 @@ def seed_database(app):
             )
             db.session.add(admin_profile)
 
-        # 2. Sample Passenger User
-        passenger_email = "passenger@example.com"
-        passenger = User.query.filter_by(email=passenger_email).first()
-        if not passenger:
-            passenger = User(
-                email=passenger_email,
-                mobile_number="9440123456",
-                password_hash=hash_password("Passenger@2026"),
-                role="passenger",
-                is_active=True
-            )
-            db.session.add(passenger)
-            db.session.flush()
-
-            passenger_profile = PassengerProfile(
-                user_id=passenger.id,
-                full_name="Venkateswara Rao",
-                preferred_language="te",
-                emergency_blood_group="O+",
-                medical_notes="Allergic to penicillin"
-            )
-            db.session.add(passenger_profile)
-
-            # Sample trusted contact
-            tc = TrustedContact(
-                user_id=passenger.id,
-                name="Lakshmi (Spouse)",
-                mobile_number="9440987654",
-                relationship="Spouse",
-                is_primary=True
-            )
-            db.session.add(tc)
-
-            # Sample complaint
-            comp = Complaint(
-                passenger_id=passenger.id,
-                category="Bus delay",
-                subject="Delay on Eluru - Vijayawada Morning Service",
-                description="The 08:00 AM non-stop service departed 25 minutes late from platform 1.",
-                service_number="ELR-BZA-NONSTOP",
-                travel_date=date.today(),
-                current_status="Under Review",
-                admin_response="Station Master Eluru has been informed to inspect peak hour fleet dispatch."
-            )
-            db.session.add(comp)
-            db.session.flush()
-
-            csh = ComplaintStatusHistory(
-                complaint_id=comp.id,
-                previous_status="Submitted",
-                new_status="Under Review",
-                changed_by_user_id=admin.id,
-                note="Assigned to Eluru Depot Traffic Supervisor",
-                passenger_message="Your grievance has been assigned to Eluru Depot Traffic Supervisor for review."
-            )
-            db.session.add(csh)
-
-        # 3. Seed Verified APSRTC Stops from Eluru Depot
+        # 2. Seed Verified APSRTC Stops from Eluru Depot
         STOPS_DATA = [
             ("Eluru", "ఏలూరు", "ELR", "Eluru", 16.7107, 81.0952),
             ("Vijayawada", "విజయవాడ", "BZA", "NTR", 16.5062, 80.6480),

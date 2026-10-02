@@ -65,3 +65,30 @@ class SmsLog(db.Model):
             "status": self.status,
             "created_at": self.created_at.isoformat()
         }
+
+class KeypadUser(db.Model):
+    __tablename__ = "keypad_users"
+
+    id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    registered_by_user_id = db.Column(db.String(36), db.ForeignKey("users.id", ondelete="SET NULL"), nullable=True, index=True)
+    name = db.Column(db.String(100), nullable=False)
+    mobile_number = db.Column(db.String(15), nullable=False, index=True)
+    preferred_route_code = db.Column(db.String(20), nullable=True) # e.g. "VJY"
+    relationship = db.Column(db.String(50), nullable=True) # "Parent", "Grandparent", "Neighbor", "Elderly Relative"
+    alert_frequency = db.Column(db.String(50), default="ON_DEMAND", nullable=False)
+    is_active = db.Column(db.Boolean, default=True, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "registered_by_user_id": self.registered_by_user_id,
+            "name": self.name,
+            "mobile_number": self.mobile_number,
+            "preferred_route_code": self.preferred_route_code,
+            "relationship": self.relationship,
+            "alert_frequency": self.alert_frequency,
+            "is_active": self.is_active,
+            "created_at": self.created_at.isoformat()
+        }
+
