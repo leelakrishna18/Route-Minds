@@ -1,0 +1,4 @@
+service_number,bus_type,route_name,source_stop,destination_stop,stop_sequence_list,departure_times_list,arrival_times_list,operating_days,validity_start_date,validity_end_date,source_of_information,verification_status
+DEMO-ELR-BZA-01,Express,Eluru to Vijayawada Non-Stop,Eluru,Vijayawada,"Eluru,Vijayawada","06:00,","06:45",DAILY,2025-01-01,2027-12-31,"[DEMO TEMPLATE] APSRTC Depot Board",VERIFIED
+DEMO-ELR-HYD-02,Amaravathi,Eluru to Hyderabad,Eluru,Hyderabad,"Eluru,Hanuman Junction,Vijayawada,Hyderabad","22:00,22:45,23:30,","04:30",DAILY,2025-01-01,2027-12-31,"[DEMO TEMPLATE] APSRTC Depot Board",VERIFIED
+DEMO-ELR-RJY-03,Super Luxury,Eluru to Rajahmundry,Eluru,Rajahmundry,"Eluru,Bhimadolu,Tadepalligudem,Tanuku,Ravulapalem,Rajahmundry","07:30,07:55,08:25,08:50,09:15,","10:00",DAILY,2025-01-01,2027-12-31,"[DEMO TEMPLATE] APSRTC Depot Board",VERIFIED
