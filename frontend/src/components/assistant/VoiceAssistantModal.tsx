@@ -34,12 +34,30 @@ export const VoiceAssistantModal: React.FC<VoiceAssistantModalProps> = ({ isOpen
   const [inputText, setInputText] = useState('');
   const [isListening, setIsListening] = useState(false);
   const [isSpeakingEnabled, setIsSpeakingEnabled] = useState(true);
+  const [currentlySpeakingId, setCurrentlySpeakingId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [quickReplies, setQuickReplies] = useState<string[]>([]);
 
   const chatEndRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<any>(null);
+  const currentUtteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
+
+  // Pre-load and cache speech synthesis voices for Safari and Chrome
+  useEffect(() => {
+    if (!('speechSynthesis' in window)) return;
+    const loadVoices = () => {
+      window.speechSynthesis.getVoices();
+    };
+    loadVoices();
+    window.speechSynthesis.onvoiceschanged = loadVoices;
+
+    return () => {
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+      }
+    };
+  }, []);
 
   // Initialize Speech Recognition with Safari safeguards
   useEffect(() => {
@@ -131,22 +149,92 @@ export const VoiceAssistantModal: React.FC<VoiceAssistantModalProps> = ({ isOpen
     }
   };
 
-  const speakText = (text: string) => {
+  const speakText = (text: string, msgId?: string) => {
     if (!isSpeakingEnabled || !('speechSynthesis' in window)) return;
     try {
       window.speechSynthesis.cancel();
-      // Remove URLs or excessive symbols for clear speech
-      const cleanText = text.replace(/https?:\/\/\S+/g, '').replace(/[•*]/g, '');
+      if (window.speechSynthesis.paused) {
+        window.speechSynthesis.resume();
+      }
+
+      // Clean URLs, markdown asterisks, hashes, and formatting symbols
+      const cleanText = text
+        .replace(/https?:\/\/\S+/g, '')
+        .replace(/[*#_~`]/g, '')
+        .replace(/[•]/g, ', ')
+        .trim();
+
+      if (!cleanText) return;
+
       const utterance = new SpeechSynthesisUtterance(cleanText);
-      utterance.lang = language === 'te' ? 'te-IN' : 'en-IN';
-      utterance.rate = 1.0;
-      window.speechSynthesis.speak(utterance);
-    } catch (e) {}
+      currentUtteranceRef.current = utterance;
+
+      const voices = window.speechSynthesis.getVoices();
+      if (language === 'te') {
+        const teVoice = voices.find(v => v.lang.toLowerCase().startsWith('te') || v.name.toLowerCase().includes('telugu'));
+        if (teVoice) {
+          utterance.voice = teVoice;
+          utterance.lang = teVoice.lang;
+        } else {
+          // Fallback to Indian English or Hindi voice capable of Indian place names
+          const inVoice = voices.find(v => v.lang === 'en-IN' || v.lang === 'hi-IN' || v.name.toLowerCase().includes('india'));
+          if (inVoice) {
+            utterance.voice = inVoice;
+            utterance.lang = inVoice.lang;
+          } else {
+            utterance.lang = 'en-IN';
+          }
+        }
+      } else {
+        const enInVoice = voices.find(v => v.lang === 'en-IN' || v.name.toLowerCase().includes('india'));
+        if (enInVoice) {
+          utterance.voice = enInVoice;
+          utterance.lang = 'en-IN';
+        } else {
+          utterance.lang = 'en-IN';
+        }
+      }
+
+      utterance.rate = 0.95;
+      utterance.pitch = 1.0;
+
+      if (msgId) setCurrentlySpeakingId(msgId);
+
+      utterance.onend = () => {
+        currentUtteranceRef.current = null;
+        setCurrentlySpeakingId(null);
+      };
+
+      utterance.onerror = (e) => {
+        console.warn('Speech synthesis utterance error:', e);
+        currentUtteranceRef.current = null;
+        setCurrentlySpeakingId(null);
+      };
+
+      // Workaround for Chrome cancel() race condition
+      setTimeout(() => {
+        if (window.speechSynthesis.paused) {
+          window.speechSynthesis.resume();
+        }
+        window.speechSynthesis.speak(utterance);
+      }, 50);
+    } catch (e) {
+      console.warn('Speech synthesis failed:', e);
+    }
   };
 
   const handleSend = async (textToSend?: string) => {
     const text = (textToSend || inputText).trim();
     if (!text) return;
+
+    // Prime audio context on user gesture
+    if ('speechSynthesis' in window) {
+      try {
+        if (window.speechSynthesis.paused) {
+          window.speechSynthesis.resume();
+        }
+      } catch (e) {}
+    }
 
     const userMsg: AssistantMessage = {
       id: Date.now().toString(),
@@ -165,8 +253,9 @@ export const VoiceAssistantModal: React.FC<VoiceAssistantModalProps> = ({ isOpen
         language
       });
 
+      const botMsgId = (Date.now() + 1).toString();
       const botMsg: AssistantMessage = {
-        id: (Date.now() + 1).toString(),
+        id: botMsgId,
         sender: 'assistant',
         text: res.response,
         intent: res.intent,
@@ -178,7 +267,7 @@ export const VoiceAssistantModal: React.FC<VoiceAssistantModalProps> = ({ isOpen
       if (res.quick_replies) {
         setQuickReplies(res.quick_replies);
       }
-      speakText(res.response);
+      speakText(res.response, botMsgId);
     } catch (err: any) {
       const errorMsg: AssistantMessage = {
         id: (Date.now() + 1).toString(),
@@ -302,13 +391,47 @@ export const VoiceAssistantModal: React.FC<VoiceAssistantModalProps> = ({ isOpen
                   </div>
                 )}
 
-                <div
-                  className={`text-[9px] mt-1.5 text-right ${
-                    msg.sender === 'user' ? 'text-purple-200' : 'text-slate-400'
-                  }`}
-                >
-                  {msg.timestamp}
-                </div>
+                {/* Voice audio playback button for assistant messages */}
+                {msg.sender === 'assistant' && (
+                  <div className="mt-2.5 pt-2 border-t border-slate-100 flex items-center justify-between">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (currentlySpeakingId === msg.id) {
+                          window.speechSynthesis.cancel();
+                          setCurrentlySpeakingId(null);
+                        } else {
+                          speakText(msg.text, msg.id);
+                        }
+                      }}
+                      className={`inline-flex items-center space-x-1 px-2.5 py-1 rounded-full text-[11px] font-semibold border transition ${
+                        currentlySpeakingId === msg.id
+                          ? 'bg-purple-600 text-white border-purple-600 animate-pulse'
+                          : 'bg-purple-50 hover:bg-purple-100 text-purple-700 border-purple-200'
+                      }`}
+                      title={currentlySpeakingId === msg.id ? "Stop voice" : "Read aloud (Play voice sound)"}
+                    >
+                      {currentlySpeakingId === msg.id ? (
+                        <>
+                          <VolumeX className="w-3.5 h-3.5" />
+                          <span>Stop Voice</span>
+                        </>
+                      ) : (
+                        <>
+                          <Volume2 className="w-3.5 h-3.5" />
+                          <span>Play Voice Sound</span>
+                        </>
+                      )}
+                    </button>
+                    <span className="text-[9px] text-slate-400">{msg.timestamp}</span>
+                  </div>
+                )}
+
+                {msg.sender === 'user' && (
+                  <div className="text-[9px] mt-1.5 text-right text-purple-200">
+                    {msg.timestamp}
+                  </div>
+                )}
               </div>
             </div>
           ))}

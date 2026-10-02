@@ -29,11 +29,29 @@ export const VoiceAssistantPage: React.FC = () => {
   const [inputText, setInputText] = useState('');
   const [isListening, setIsListening] = useState(false);
   const [isSpeakingEnabled, setIsSpeakingEnabled] = useState(true);
+  const [currentlySpeakingId, setCurrentlySpeakingId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [suggestions, setSuggestions] = useState<string[]>([]);
 
   const chatEndRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<any>(null);
+  const currentUtteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
+
+  // Pre-load and cache speech synthesis voices for Safari and Chrome
+  useEffect(() => {
+    if (!('speechSynthesis' in window)) return;
+    const loadVoices = () => {
+      window.speechSynthesis.getVoices();
+    };
+    loadVoices();
+    window.speechSynthesis.onvoiceschanged = loadVoices;
+
+    return () => {
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+      }
+    };
+  }, []);
 
   // Initialize Speech Recognition
   useEffect(() => {
@@ -129,18 +147,88 @@ export const VoiceAssistantPage: React.FC = () => {
     }
   };
 
-  const speakText = (text: string) => {
+  const speakText = (text: string, msgId?: string) => {
     if (!isSpeakingEnabled || !('speechSynthesis' in window)) return;
-    window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = language === 'te' ? 'te-IN' : 'en-IN';
-    utterance.rate = 1.0;
-    window.speechSynthesis.speak(utterance);
+    try {
+      window.speechSynthesis.cancel();
+      if (window.speechSynthesis.paused) {
+        window.speechSynthesis.resume();
+      }
+
+      const cleanText = text
+        .replace(/https?:\/\/\S+/g, '')
+        .replace(/[*#_~`]/g, '')
+        .replace(/[•]/g, ', ')
+        .trim();
+
+      if (!cleanText) return;
+
+      const utterance = new SpeechSynthesisUtterance(cleanText);
+      currentUtteranceRef.current = utterance;
+
+      const voices = window.speechSynthesis.getVoices();
+      if (language === 'te') {
+        const teVoice = voices.find(v => v.lang.toLowerCase().startsWith('te') || v.name.toLowerCase().includes('telugu'));
+        if (teVoice) {
+          utterance.voice = teVoice;
+          utterance.lang = teVoice.lang;
+        } else {
+          const inVoice = voices.find(v => v.lang === 'en-IN' || v.lang === 'hi-IN' || v.name.toLowerCase().includes('india'));
+          if (inVoice) {
+            utterance.voice = inVoice;
+            utterance.lang = inVoice.lang;
+          } else {
+            utterance.lang = 'en-IN';
+          }
+        }
+      } else {
+        const enInVoice = voices.find(v => v.lang === 'en-IN' || v.name.toLowerCase().includes('india'));
+        if (enInVoice) {
+          utterance.voice = enInVoice;
+          utterance.lang = 'en-IN';
+        } else {
+          utterance.lang = 'en-IN';
+        }
+      }
+
+      utterance.rate = 0.95;
+      utterance.pitch = 1.0;
+
+      if (msgId) setCurrentlySpeakingId(msgId);
+
+      utterance.onend = () => {
+        currentUtteranceRef.current = null;
+        setCurrentlySpeakingId(null);
+      };
+
+      utterance.onerror = (e) => {
+        console.warn('Speech synthesis utterance error:', e);
+        currentUtteranceRef.current = null;
+        setCurrentlySpeakingId(null);
+      };
+
+      setTimeout(() => {
+        if (window.speechSynthesis.paused) {
+          window.speechSynthesis.resume();
+        }
+        window.speechSynthesis.speak(utterance);
+      }, 50);
+    } catch (e) {
+      console.warn('Speech synthesis failed:', e);
+    }
   };
 
   const handleSend = async (textToSend?: string) => {
     const text = (textToSend || inputText).trim();
     if (!text) return;
+
+    if ('speechSynthesis' in window) {
+      try {
+        if (window.speechSynthesis.paused) {
+          window.speechSynthesis.resume();
+        }
+      } catch (e) {}
+    }
 
     const userMsg: AssistantMessage = {
       id: Date.now().toString(),
@@ -159,8 +247,9 @@ export const VoiceAssistantPage: React.FC = () => {
         language
       });
 
+      const botMsgId = (Date.now() + 1).toString();
       const botMsg: AssistantMessage = {
-        id: (Date.now() + 1).toString(),
+        id: botMsgId,
         sender: 'assistant',
         text: res.response,
         intent: res.intent,
@@ -169,7 +258,7 @@ export const VoiceAssistantPage: React.FC = () => {
       };
 
       setMessages(prev => [...prev, botMsg]);
-      speakText(res.response);
+      speakText(res.response, botMsgId);
     } catch (err: any) {
       const errorMsg: AssistantMessage = {
         id: (Date.now() + 1).toString(),
@@ -295,8 +384,45 @@ export const VoiceAssistantPage: React.FC = () => {
                     </div>
                   </div>
                 )}
+                {/* Voice audio playback button for assistant messages */}
+                {m.sender === 'assistant' && (
+                  <div className="mt-3 pt-2 border-t border-slate-200 flex items-center justify-between">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (currentlySpeakingId === m.id) {
+                          window.speechSynthesis.cancel();
+                          setCurrentlySpeakingId(null);
+                        } else {
+                          speakText(m.text, m.id);
+                        }
+                      }}
+                      className={`inline-flex items-center space-x-1 px-2.5 py-1 rounded-full text-[11px] font-semibold border transition ${
+                        currentlySpeakingId === m.id
+                          ? 'bg-purple-600 text-white border-purple-600 animate-pulse'
+                          : 'bg-white hover:bg-purple-50 text-purple-700 border-purple-200 shadow-2xs'
+                      }`}
+                      title={currentlySpeakingId === m.id ? "Stop voice" : "Read aloud (Play voice sound)"}
+                    >
+                      {currentlySpeakingId === m.id ? (
+                        <>
+                          <VolumeX className="w-3.5 h-3.5" />
+                          <span>Stop Voice</span>
+                        </>
+                      ) : (
+                        <>
+                          <Volume2 className="w-3.5 h-3.5" />
+                          <span>Play Voice Sound</span>
+                        </>
+                      )}
+                    </button>
+                    <span className="text-[10px] text-slate-400">{m.timestamp}</span>
+                  </div>
+                )}
               </div>
-              <span className="text-[10px] text-slate-400 mt-1 px-1">{m.timestamp}</span>
+              {m.sender === 'user' && (
+                <span className="text-[10px] text-slate-400 mt-1 px-1">{m.timestamp}</span>
+              )}
             </div>
           ))}
 
