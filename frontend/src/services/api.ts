@@ -1,4 +1,12 @@
-const API_BASE = '/api/v1';
+const getApiBase = () => {
+  if (typeof window !== 'undefined') {
+    const host = window.location.hostname || '127.0.0.1';
+    return `http://${host}:5001/api/v1`;
+  }
+  return '/api/v1';
+};
+
+const API_BASE = getApiBase();
 
 export class ApiError extends Error {
   errorCode: string;
@@ -27,10 +35,20 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
     headers.set('Content-Type', 'application/json');
   }
 
-  const response = await fetch(`${API_BASE}${endpoint}`, {
-    ...options,
-    headers,
-  });
+  let response: Response;
+  try {
+    response = await fetch(`${API_BASE}${endpoint}`, {
+      ...options,
+      headers,
+    });
+  } catch (netErr: any) {
+    throw new ApiError(
+      'Unable to connect to the APSRTC backend API server. Please ensure the Flask server is running on http://127.0.0.1:5001.',
+      'CONNECTION_FAILED',
+      undefined,
+      503
+    );
+  }
 
   const contentType = response.headers.get('content-type');
   if (contentType && contentType.includes('text/csv')) {

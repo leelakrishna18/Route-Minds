@@ -18,24 +18,27 @@ import {
 import { api } from '../services/api';
 import { Stop } from '../types';
 import { useLanguage } from '../context/LanguageContext';
+import { DEFAULT_STOPS } from '../utils/defaultStops';
 
 export const LandingPage: React.FC = () => {
   const { t, language } = useLanguage();
   const navigate = useNavigate();
 
-  const [stops, setStops] = useState<Stop[]>([]);
-  const [sourceStopId, setSourceStopId] = useState('');
-  const [destStopId, setDestStopId] = useState('');
+  const [stops, setStops] = useState<Stop[]>(DEFAULT_STOPS);
+  const [sourceStopId, setSourceStopId] = useState(() => DEFAULT_STOPS[0]?.id || '');
+  const [destStopId, setDestStopId] = useState(() => DEFAULT_STOPS[1]?.id || '');
   const [travelDate, setTravelDate] = useState(new Date().toISOString().split('T')[0]);
 
   useEffect(() => {
     api.get<Stop[]>('/schedules/stops')
       .then(data => {
-        setStops(data);
-        const elr = data.find(s => s.name === 'Eluru');
-        const bza = data.find(s => s.name === 'Vijayawada');
-        if (elr) setSourceStopId(elr.id);
-        if (bza) setDestStopId(bza.id);
+        if (data && data.length > 0) {
+          setStops(data);
+          const elr = data.find(s => s.name === 'Eluru');
+          const bza = data.find(s => s.name === 'Vijayawada');
+          if (elr) setSourceStopId(elr.id);
+          if (bza) setDestStopId(bza.id);
+        }
       })
       .catch(console.error);
   }, []);

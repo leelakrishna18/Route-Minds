@@ -27,6 +27,19 @@ def is_service_operating_on_date(service: BusService, target_date: date) -> bool
     allowed_days = [d.strip() for d in op_days.split(",") if d.strip()]
     return weekday_code in allowed_days
 
+def find_stop(identifier: str):
+    if not identifier:
+        return None
+    st = db.session.get(Stop, identifier) if hasattr(db.session, "get") else Stop.query.get(identifier)
+    if st:
+        return st
+    clean = identifier.replace("-def", "").strip()
+    return Stop.query.filter(
+        (Stop.code.ilike(clean)) |
+        (Stop.name.ilike(clean)) |
+        (Stop.name.ilike(f"%{clean}%"))
+    ).first()
+
 def search_buses(source_stop_id: str, destination_stop_id: str, travel_date_obj: date, bus_type_filter: str = None) -> list[dict]:
     """
     Implements APSRTC directional search:
@@ -40,11 +53,14 @@ def search_buses(source_stop_id: str, destination_stop_id: str, travel_date_obj:
     if source_stop_id == destination_stop_id:
         return []
 
-    # Get source & destination stop records
-    source_stop = Stop.query.get(source_stop_id)
-    dest_stop = Stop.query.get(destination_stop_id)
-    if not source_stop or not dest_stop:
+    # Get source & destination stop records flexibly by ID, code, or name
+    source_stop = find_stop(source_stop_id)
+    dest_stop = find_stop(destination_stop_id)
+    if not source_stop or not dest_stop or source_stop.id == dest_stop.id:
         return []
+
+    real_source_id = source_stop.id
+    real_dest_id = dest_stop.id
 
     # Find routes containing both stops where sequence_order(source) < sequence_order(dest)
     # Using alias or join
@@ -61,8 +77,8 @@ def search_buses(source_stop_id: str, destination_stop_id: str, travel_date_obj:
         rs2, rs2.route_id == Route.id
     ).filter(
         Route.is_active == True,
-        rs1.stop_id == source_stop_id,
-        rs2.stop_id == destination_stop_id,
+        rs1.stop_id == real_source_id,
+        rs2.stop_id == real_dest_id,
         rs1.sequence_order < rs2.sequence_order
     )
 
@@ -97,8 +113,8 @@ def search_buses(source_stop_id: str, destination_stop_id: str, travel_date_obj:
             entries = {e.stop_id: e for e in srv.timetable_entries}
 
             # Must have source entry with a scheduled departure time (or starting time)
-            source_entry = entries.get(source_stop_id)
-            dest_entry = entries.get(destination_stop_id)
+            source_entry = entries.get(real_source_id)
+            dest_entry = entries.get(real_dest_id)
 
             boarding_time = None
             platform_num = None

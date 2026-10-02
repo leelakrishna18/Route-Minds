@@ -38,6 +38,9 @@ export const SmsServicePage: React.FC = () => {
       .catch(console.error);
   };
 
+  const [regError, setRegError] = useState<string | null>(null);
+  const [simError, setSimError] = useState<string | null>(null);
+
   useEffect(() => {
     fetchCodesAndLogs();
   }, []);
@@ -45,18 +48,20 @@ export const SmsServicePage: React.FC = () => {
   const handleRegisterMobile = async (e: React.FormEvent) => {
     e.preventDefault();
     setRegSuccess(null);
+    setRegError(null);
     try {
       await api.post('/sms/register', { mobile_number: regMobile });
       setRegSuccess(`Mobile number +91-${regMobile} successfully registered for APSRTC SMS enquiries.`);
       setRegMobile('');
     } catch (err: any) {
-      alert(err.message || 'Registration failed.');
+      setRegError(err.message || 'Registration failed.');
     }
   };
 
   const handleSimulateSms = async (e: React.FormEvent) => {
     e.preventDefault();
     setSimLoading(true);
+    setSimError(null);
     try {
       const resp: any = await api.post('/sms/webhook', {
         sender: simSender,
@@ -65,7 +70,7 @@ export const SmsServicePage: React.FC = () => {
       setSimResponse(resp);
       fetchCodesAndLogs();
     } catch (err: any) {
-      alert(err.message || 'SMS simulator webhook failed.');
+      setSimError(err.message || 'SMS simulator webhook failed.');
     } finally {
       setSimLoading(false);
     }
@@ -142,6 +147,13 @@ export const SmsServicePage: React.FC = () => {
                 </div>
               )}
 
+              {regError && (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-xs text-rose-700 flex items-start space-x-2">
+                  <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                  <span>{regError}</span>
+                </div>
+              )}
+
               <form onSubmit={handleRegisterMobile} className="flex gap-2">
                 <div className="flex flex-1">
                   <span className="inline-flex items-center px-2.5 rounded-l-lg border border-r-0 border-slate-300 bg-slate-100 text-slate-500 text-xs font-semibold">
@@ -179,6 +191,13 @@ export const SmsServicePage: React.FC = () => {
                 Test how the real Flask SMS webhook handles incoming messages and formats 160-char responses.
               </p>
             </div>
+
+            {simError && (
+              <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-xs text-rose-700 flex items-start space-x-2">
+                <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                <span>{simError}</span>
+              </div>
+            )}
 
             <form onSubmit={handleSimulateSms} className="space-y-3 bg-slate-50 p-4 rounded-xl border border-slate-200">
               <div className="grid grid-cols-2 gap-3">

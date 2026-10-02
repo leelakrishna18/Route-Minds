@@ -157,7 +157,7 @@ export const VoiceAssistantPage: React.FC = () => {
       const errorMsg: AssistantMessage = {
         id: (Date.now() + 1).toString(),
         sender: 'assistant',
-        text: 'Sorry, I encountered an error connecting to the transit assistant engine. Please try again.',
+        text: err.message || 'Sorry, I encountered an error connecting to the transit assistant engine. Please try again.',
         timestamp: new Date().toLocaleTimeString()
       };
       setMessages(prev => [...prev, errorMsg]);

@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, UserPlus, AlertCircle, CheckCircle } from 'lucide-react';
 import { api, ApiError } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
+import { ApsrtcLogo } from '../../components/common/ApsrtcLogo';
 
 export const RegisterPage: React.FC = () => {
   const { login } = useAuth();
@@ -55,7 +56,7 @@ export const RegisterPage: React.FC = () => {
       if (err instanceof ApiError) {
         setError(err.message);
       } else {
-        setError('Registration could not be completed. Please check all fields.');
+        setError(err.message || 'Registration could not be completed. Please check your connection to the server.');
       }
     } finally {
       setIsLoading(false);
@@ -66,7 +67,9 @@ export const RegisterPage: React.FC = () => {
     <div className="min-h-screen bg-slate-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full bg-white rounded-2xl p-8 shadow-sm border border-slate-200">
         <div className="text-center mb-6">
-          <img src="/apsrtc_logo.svg" alt="APSRTC Logo" className="w-12 h-12 mx-auto mb-2" />
+          <div className="flex justify-center mb-2">
+            <ApsrtcLogo className="w-14 h-14 drop-shadow" size={56} />
+          </div>
           <h2 className="text-2xl font-black text-slate-900">Passenger Registration</h2>
           <p className="text-xs text-slate-500 mt-1">Create an official APSRTC passenger account</p>
         </div>

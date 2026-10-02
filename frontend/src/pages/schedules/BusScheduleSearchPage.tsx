@@ -17,14 +17,15 @@ import {
 import { api } from '../../services/api';
 import { Stop, BusSearchResult } from '../../types';
 import { useLanguage } from '../../context/LanguageContext';
+import { DEFAULT_STOPS } from '../../utils/defaultStops';
 
 export const BusScheduleSearchPage: React.FC = () => {
   const { t } = useLanguage();
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const [stops, setStops] = useState<Stop[]>([]);
-  const [sourceStopId, setSourceStopId] = useState(searchParams.get('from') || '');
-  const [destStopId, setDestStopId] = useState(searchParams.get('to') || '');
+  const [stops, setStops] = useState<Stop[]>(DEFAULT_STOPS);
+  const [sourceStopId, setSourceStopId] = useState(() => searchParams.get('from') || DEFAULT_STOPS[0]?.id || '');
+  const [destStopId, setDestStopId] = useState(() => searchParams.get('to') || DEFAULT_STOPS[1]?.id || '');
   const [travelDate, setTravelDate] = useState(searchParams.get('date') || new Date().toISOString().split('T')[0]);
   const [busTypeFilter, setBusTypeFilter] = useState('');
   
@@ -37,14 +38,12 @@ export const BusScheduleSearchPage: React.FC = () => {
   useEffect(() => {
     api.get<Stop[]>('/schedules/stops')
       .then(data => {
-        setStops(data);
-        if (!sourceStopId) {
+        if (data && data.length > 0) {
+          setStops(data);
           const elr = data.find(s => s.name === 'Eluru');
-          if (elr) setSourceStopId(elr.id);
-        }
-        if (!destStopId) {
           const bza = data.find(s => s.name === 'Vijayawada');
-          if (bza) setDestStopId(bza.id);
+          if (!searchParams.get('from') && elr) setSourceStopId(elr.id);
+          if (!searchParams.get('to') && bza) setDestStopId(bza.id);
         }
       })
       .catch(console.error);

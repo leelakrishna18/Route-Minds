@@ -17,6 +17,7 @@ import {
   PhoneCall,
   Lock
 } from 'lucide-react';
+import { ApsrtcLogo } from '../common/ApsrtcLogo';
 
 export const Navbar: React.FC = () => {
   const { user, isAuthenticated, isAdmin, logout } = useAuth();
@@ -72,7 +73,7 @@ export const Navbar: React.FC = () => {
         <div className="flex justify-between h-16 items-center">
           {/* Brand Logo & Name */}
           <Link to="/" className="flex items-center space-x-3">
-            <img src="/apsrtc_logo.svg" alt="APSRTC" className="w-10 h-10 object-contain drop-shadow" />
+            <ApsrtcLogo className="w-10 h-10 drop-shadow" />
             <div>
               <div className="text-xl font-black tracking-tight text-apsrtc-primary leading-none">APSRTC</div>
               <div className="text-[10px] tracking-wider text-slate-500 font-semibold uppercase">{t('tagline')}</div>
