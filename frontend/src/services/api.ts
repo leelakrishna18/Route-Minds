@@ -1,7 +1,15 @@
 const getApiBase = () => {
+  if (import.meta.env.VITE_API_URL) {
+    return import.meta.env.VITE_API_URL;
+  }
   if (typeof window !== 'undefined') {
-    const host = window.location.hostname || '127.0.0.1';
-    return `http://${host}:5001/api/v1`;
+    // If running locally on port 3000 during local development
+    if (window.location.port === '3000') {
+      const host = window.location.hostname || '127.0.0.1';
+      return `http://${host}:5001/api/v1`;
+    }
+    // Production (Vercel deployment): rewrites handle /api/* seamlessly
+    return '/api/v1';
   }
   return '/api/v1';
 };

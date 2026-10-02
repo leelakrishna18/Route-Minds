@@ -13,15 +13,18 @@ class Config:
 
     # Database configuration
     # Default to sqlite for local zero-dependency execution; PostgreSQL/Supabase via DATABASE_URL
-    SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URL", f"sqlite:///{os.path.join(BASE_DIR, 'apsrtc.db')}")
+    is_vercel = bool(os.getenv("VERCEL"))
+    default_db = "sqlite:////tmp/apsrtc.db" if is_vercel else f"sqlite:///{os.path.join(BASE_DIR, 'apsrtc.db')}"
+    SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URL", default_db)
     # Fix for SQLAlchemy postgres:// vs postgresql://
     if SQLALCHEMY_DATABASE_URI.startswith("postgres://"):
         SQLALCHEMY_DATABASE_URI = SQLALCHEMY_DATABASE_URI.replace("postgres://", "postgresql://", 1)
     
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
-    # Uploads
-    UPLOAD_FOLDER = os.path.join(BASE_DIR, os.getenv("UPLOAD_FOLDER", "uploads"))
+    # Uploads (/tmp when deployed serverless on Vercel)
+    default_upload_dir = "/tmp/uploads" if is_vercel else os.path.join(BASE_DIR, "uploads")
+    UPLOAD_FOLDER = os.getenv("UPLOAD_FOLDER", default_upload_dir)
     MAX_CONTENT_LENGTH = int(os.getenv("MAX_CONTENT_LENGTH_MB", "5")) * 1024 * 1024
     ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "webp"}
 

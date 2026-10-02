@@ -42,6 +42,17 @@ def create_app(config_class=Config):
             "version": "1.0.0"
         }), 200
 
+    # Auto-initialize and seed tables if empty (crucial for serverless cold-starts)
+    with app.app_context():
+        try:
+            db.create_all()
+            from app.models.timetable import Stop
+            if Stop.query.count() == 0:
+                from app.data.seed import seed_database
+                seed_database(app)
+        except Exception as e:
+            app.logger.warning(f"Database auto-seed check: {e}")
+
     # Centralized Error Handlers
     @app.errorhandler(400)
     def bad_request(e):
