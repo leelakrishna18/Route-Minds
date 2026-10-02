@@ -60,7 +60,8 @@ def create_app(config_class=Config):
                     "ALTER TABLE bus_services ADD COLUMN fare VARCHAR(50) DEFAULT 'Standard Fare'",
                     "ALTER TABLE bus_services ADD COLUMN seating_capacity INTEGER DEFAULT 49",
                     "ALTER TABLE bus_services ADD COLUMN depot_name VARCHAR(100) DEFAULT 'Eluru Depot'",
-                    "DELETE FROM users WHERE email='passenger@example.com'"
+                    "DELETE FROM users WHERE email='passenger@example.com'",
+                    "DELETE FROM stops WHERE name IN ('Rangapuram', 'Dendulur', 'Akkupalli Gokavaram', 'Kalarayanagatudem', 'Annapanenivarigudem', 'Pothunuru', 'Pedalanka', 'Talla Gokavaram', 'Kondarapulapalem', 'Gogunta', 'Gudipadu', 'Gullapudi', 'Chettunapadu')"
                 ]:
                     try:
                         conn.execute(db.text(stmt))
