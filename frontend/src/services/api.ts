@@ -50,8 +50,12 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
       headers,
     });
   } catch (netErr: any) {
+    const isDev = typeof window !== 'undefined' && window.location.port === '3000';
+    const message = isDev
+      ? 'Unable to connect to the APSRTC backend API server. Please ensure the Flask server is running on http://127.0.0.1:5001.'
+      : 'Unable to connect to the APSRTC transit services. The server may be warming up or temporarily unreachable. Please retry in a few moments.';
     throw new ApiError(
-      'Unable to connect to the APSRTC backend API server. Please ensure the Flask server is running on http://127.0.0.1:5001.',
+      message,
       'CONNECTION_FAILED',
       undefined,
       503

@@ -7,6 +7,7 @@ load_dotenv()
 BASE_DIR = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
 
 class Config:
+    BASE_DIR = BASE_DIR
     SECRET_KEY = os.getenv("SECRET_KEY", "apsrtc-smart-platform-dev-secret-key-2026")
     JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY", "apsrtc-jwt-token-dev-secret-key-2026")
     JWT_EXPIRATION_DELTA = timedelta(minutes=int(os.getenv("JWT_ACCESS_TOKEN_EXPIRES_MINUTES", "1440")))

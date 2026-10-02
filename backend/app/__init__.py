@@ -45,6 +45,13 @@ def create_app(config_class=Config):
     # Auto-initialize and seed tables if empty (crucial for serverless cold-starts)
     with app.app_context():
         try:
+            is_vercel = bool(os.getenv("VERCEL"))
+            if is_vercel:
+                tmp_db = "/tmp/apsrtc.db"
+                seed_db = os.path.join(app.config.get("BASE_DIR", ""), "apsrtc.db")
+                if not os.path.exists(tmp_db) and os.path.exists(seed_db):
+                    import shutil
+                    shutil.copyfile(seed_db, tmp_db)
             db.create_all()
             from app.models.timetable import Stop
             if Stop.query.count() == 0:

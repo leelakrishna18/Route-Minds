@@ -39,28 +39,35 @@ export const VoiceAssistantPage: React.FC = () => {
   useEffect(() => {
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (SpeechRecognition) {
-      const recognition = new SpeechRecognition();
-      recognition.continuous = false;
-      recognition.interimResults = false;
-      recognition.lang = language === 'te' ? 'te-IN' : 'en-IN';
+      try {
+        const recognition = new SpeechRecognition();
+        recognition.continuous = false;
+        recognition.interimResults = false;
+        recognition.lang = language === 'te' ? 'te-IN' : 'en-IN';
 
-      recognition.onresult = (event: any) => {
-        const transcript = event.results[0][0].transcript;
-        setInputText(transcript);
-        setIsListening(false);
-        handleSend(transcript);
-      };
+        recognition.onresult = (event: any) => {
+          const transcript = event.results[0][0].transcript;
+          setInputText(transcript);
+          setIsListening(false);
+          handleSend(transcript);
+        };
 
-      recognition.onerror = (event: any) => {
-        console.error('Speech recognition error:', event.error);
-        setIsListening(false);
-      };
+        recognition.onerror = (event: any) => {
+          console.warn('Speech recognition warning/error:', event.error);
+          setIsListening(false);
+          if (event.error === 'not-allowed') {
+            alert('Microphone access was not allowed. Please permit microphone access in your browser settings to use voice input, or type your message below.');
+          }
+        };
 
-      recognition.onend = () => {
-        setIsListening(false);
-      };
+        recognition.onend = () => {
+          setIsListening(false);
+        };
 
-      recognitionRef.current = recognition;
+        recognitionRef.current = recognition;
+      } catch (err) {
+        console.warn('Speech recognition initialization error:', err);
+      }
     }
   }, [language]);
 
@@ -98,17 +105,27 @@ export const VoiceAssistantPage: React.FC = () => {
 
   const toggleListening = () => {
     if (!recognitionRef.current) {
-      alert('Speech recognition is not supported in this browser. Please use Google Chrome or type your message.');
+      alert('Speech recognition is not supported in this browser. Please use Google Chrome or type your message in the chat.');
       return;
     }
 
     if (isListening) {
-      recognitionRef.current.stop();
+      try {
+        recognitionRef.current.stop();
+      } catch (e) {
+        console.warn('Error stopping speech:', e);
+      }
       setIsListening(false);
     } else {
-      recognitionRef.current.lang = language === 'te' ? 'te-IN' : 'en-IN';
-      recognitionRef.current.start();
-      setIsListening(true);
+      try {
+        recognitionRef.current.lang = language === 'te' ? 'te-IN' : 'en-IN';
+        recognitionRef.current.start();
+        setIsListening(true);
+      } catch (e: any) {
+        console.warn('Error starting speech:', e);
+        setIsListening(false);
+        alert('Could not activate microphone. Please check browser microphone permissions or type your query below.');
+      }
     }
   };
 

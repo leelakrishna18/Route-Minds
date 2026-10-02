@@ -7,9 +7,6 @@ __pycache__/
 backend/venv/
 backend/.pytest_cache/
 .pytest_cache/
-*.db
-backend/apsrtc.db
-apsrtc.db
 backend/uploads/*
 !backend/uploads/.gitkeep
 
