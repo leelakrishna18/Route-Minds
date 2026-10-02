@@ -53,6 +53,21 @@ def create_app(config_class=Config):
                     import shutil
                     shutil.copyfile(seed_db, tmp_db)
             db.create_all()
+
+            # Ensure new columns exist in bus_services (safe migration for existing SQLite DBs)
+            with db.engine.connect() as conn:
+                for stmt in [
+                    "ALTER TABLE bus_services ADD COLUMN fare VARCHAR(50) DEFAULT 'Standard Fare'",
+                    "ALTER TABLE bus_services ADD COLUMN seating_capacity INTEGER DEFAULT 49",
+                    "ALTER TABLE bus_services ADD COLUMN depot_name VARCHAR(100) DEFAULT 'Eluru Depot'",
+                    "DELETE FROM users WHERE email='passenger@example.com'"
+                ]:
+                    try:
+                        conn.execute(db.text(stmt))
+                        conn.commit()
+                    except Exception:
+                        pass
+
             from app.models.timetable import Stop
             if Stop.query.count() == 0:
                 from app.data.seed import seed_database

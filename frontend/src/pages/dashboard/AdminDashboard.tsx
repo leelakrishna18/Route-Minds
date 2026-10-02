@@ -22,12 +22,21 @@ export const AdminDashboard: React.FC = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let isMounted = true;
     api.get<any>('/admin/stats')
       .then(data => {
-        setStats(data);
-        setLoading(false);
+        if (isMounted) setStats(data);
       })
-      .catch(console.error);
+      .catch(err => {
+        console.error('Failed to load admin stats:', err);
+      })
+      .finally(() => {
+        if (isMounted) setLoading(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   const handleExportCsv = async () => {

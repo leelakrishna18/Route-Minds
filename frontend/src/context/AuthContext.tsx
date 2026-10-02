@@ -18,7 +18,18 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(() => {
     const saved = localStorage.getItem('apsrtc_user');
-    return saved ? JSON.parse(saved) : null;
+    if (!saved) return null;
+    try {
+      const parsed = JSON.parse(saved);
+      if (parsed?.email === 'passenger@example.com') {
+        localStorage.removeItem('apsrtc_user');
+        localStorage.removeItem('apsrtc_token');
+        return null;
+      }
+      return parsed;
+    } catch {
+      return null;
+    }
   });
   const [token, setToken] = useState<string | null>(() => localStorage.getItem('apsrtc_token'));
   const [isLoading, setIsLoading] = useState<boolean>(true);

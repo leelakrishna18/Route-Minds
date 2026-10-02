@@ -89,7 +89,7 @@ export const LoginPage: React.FC = () => {
               type="text"
               value={identifier}
               onChange={(e) => setIdentifier(e.target.value)}
-              placeholder="e.g. passenger@example.com or 9440123456"
+              placeholder="e.g. yourname@gmail.com or 9440123456"
               className="w-full bg-slate-50 border border-slate-300 rounded-lg px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-apsrtc-primary"
               required
             />
