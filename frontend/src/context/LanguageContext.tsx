@@ -11,7 +11,7 @@ interface LanguageContextType {
 const translations: Record<Language, Record<string, string>> = {
   en: {
     platformName: "APSRTC Smart Passenger Platform",
-    tagline: "Official Unified Passenger Information System",
+    tagline: "Unified Passenger Information System",
     home: "Home",
     busSchedules: "Bus Schedules",
     womensSafety: "Women's Safety",
@@ -33,7 +33,7 @@ const translations: Record<Language, Record<string, string>> = {
   },
   te: {
     platformName: "APSRTC స్మార్ట్ ప్రయాణీకుల వేదిక",
-    tagline: "ఆంధ్రప్రదేశ్ రాష్ట్ర రోడ్డు రవాణా సంస్థ అధికారిక డిజిటల్ సేవలు",
+    tagline: "ఆంధ్రప్రదేశ్ రాష్ట్ర రోడ్డు రవాణా సంస్థ డిజిటల్ సేవలు",
     home: "ప్రారంభం",
     busSchedules: "బస్సు వేళలు",
     womensSafety: "మహిళా భద్రత",

@@ -46,6 +46,9 @@ def submit_complaint():
     if not description or len(description) < 15:
         return error_response("Please describe the incident in at least 15 characters.", "INVALID_DESCRIPTION", status_code=400)
 
+    if not service_number:
+        return error_response("Service or Bus number is required.", "MISSING_SERVICE_NUMBER", status_code=400)
+
     travel_date_val = None
     if travel_date_str:
         try:

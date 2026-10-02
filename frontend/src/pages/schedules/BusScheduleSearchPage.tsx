@@ -8,7 +8,6 @@ import {
   MapPin,
   CheckCircle2,
   AlertCircle,
-  ArrowUpDown,
   Filter,
   RotateCcw,
   Info,
@@ -24,7 +23,10 @@ export const BusScheduleSearchPage: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
 
   const [stops, setStops] = useState<Stop[]>(DEFAULT_STOPS);
-  const [sourceStopId, setSourceStopId] = useState(() => searchParams.get('from') || DEFAULT_STOPS[0]?.id || '');
+  const eluruStop = stops.find(s => s.name === 'Eluru') || DEFAULT_STOPS[0];
+  const destinationStops = stops.filter(s => s.name !== 'Eluru');
+
+  const [sourceStopId, setSourceStopId] = useState(() => eluruStop.id);
   const [destStopId, setDestStopId] = useState(() => searchParams.get('to') || DEFAULT_STOPS[1]?.id || '');
   const [travelDate, setTravelDate] = useState(searchParams.get('date') || new Date().toISOString().split('T')[0]);
   const [busTypeFilter, setBusTypeFilter] = useState('');
@@ -34,15 +36,15 @@ export const BusScheduleSearchPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Load stops
+  // Load stops & lock source to Eluru Depot
   useEffect(() => {
     api.get<Stop[]>('/schedules/stops')
       .then(data => {
         if (data && data.length > 0) {
           setStops(data);
-          const elr = data.find(s => s.name === 'Eluru');
-          const bza = data.find(s => s.name === 'Vijayawada');
-          if (!searchParams.get('from') && elr) setSourceStopId(elr.id);
+          const elr = data.find(s => s.name === 'Eluru') || data[0];
+          const bza = data.find(s => s.name === 'Vijayawada') || data[1];
+          setSourceStopId(elr.id);
           if (!searchParams.get('to') && bza) setDestStopId(bza.id);
         }
       })
@@ -51,14 +53,12 @@ export const BusScheduleSearchPage: React.FC = () => {
 
   // Perform search if params present
   useEffect(() => {
-    const from = searchParams.get('from');
     const to = searchParams.get('to');
     const date = searchParams.get('date');
-    if (from && to && date) {
-      setSourceStopId(from);
+    if (to && date) {
       setDestStopId(to);
       setTravelDate(date);
-      executeSearch(from, to, date, busTypeFilter);
+      executeSearch(eluruStop.id, to, date, busTypeFilter);
     }
   }, [searchParams]);
 
@@ -98,12 +98,6 @@ export const BusScheduleSearchPage: React.FC = () => {
       date: travelDate
     });
     executeSearch(sourceStopId, destStopId, travelDate, busTypeFilter);
-  };
-
-  const handleSwap = () => {
-    const temp = sourceStopId;
-    setSourceStopId(destStopId);
-    setDestStopId(temp);
   };
 
   const handleReset = () => {
@@ -149,29 +143,17 @@ export const BusScheduleSearchPage: React.FC = () => {
                 <select
                   value={sourceStopId}
                   onChange={(e) => setSourceStopId(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-apsrtc-primary"
+                  className="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-900 font-medium focus:outline-none focus:ring-2 focus:ring-apsrtc-primary"
                   required
                 >
-                  <option value="">Select origin...</option>
-                  {stops.map(s => (
-                    <option key={s.id} value={s.id}>
-                      {s.name} {s.name_te ? `(${s.name_te})` : ''}
-                    </option>
-                  ))}
+                  <option value={eluruStop.id}>
+                    {eluruStop.name} {eluruStop.name_te ? `(${eluruStop.name_te})` : ''} — Eluru Depot Hub
+                  </option>
                 </select>
               </div>
 
               <div>
-                <div className="flex justify-between items-center mb-1">
-                  <label className="text-xs font-semibold text-slate-700">{t('to')}</label>
-                  <button
-                    type="button"
-                    onClick={handleSwap}
-                    className="text-[11px] text-apsrtc-primary hover:underline font-semibold flex items-center"
-                  >
-                    <ArrowUpDown className="w-3 h-3 mr-0.5" /> Swap
-                  </button>
-                </div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">{t('to')}</label>
                 <select
                   value={destStopId}
                   onChange={(e) => setDestStopId(e.target.value)}
@@ -179,7 +161,7 @@ export const BusScheduleSearchPage: React.FC = () => {
                   required
                 >
                   <option value="">Select destination...</option>
-                  {stops.map(s => (
+                  {destinationStops.map(s => (
                     <option key={s.id} value={s.id}>
                       {s.name} {s.name_te ? `(${s.name_te})` : ''}
                     </option>

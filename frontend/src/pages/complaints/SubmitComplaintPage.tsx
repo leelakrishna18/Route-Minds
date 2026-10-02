@@ -50,7 +50,11 @@ export const SubmitComplaintPage: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null);
+    if (!formData.service_number.trim()) {
+      setError('Please provide the Service or Bus Number.');
+      return;
+    }
+
     setIsLoading(true);
 
     try {
@@ -58,7 +62,7 @@ export const SubmitComplaintPage: React.FC = () => {
       data.append('category', formData.category);
       data.append('subject', formData.subject);
       data.append('description', formData.description);
-      if (formData.service_number) data.append('service_number', formData.service_number);
+      data.append('service_number', formData.service_number.trim());
       if (formData.travel_date) data.append('travel_date', formData.travel_date);
       if (selectedFile) data.append('attachment', selectedFile);
 
@@ -182,13 +186,14 @@ export const SubmitComplaintPage: React.FC = () => {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Service / Bus Number (Optional)</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">Service / Bus Number *</label>
                   <input
                     type="text"
                     value={formData.service_number}
                     onChange={(e) => setFormData({ ...formData, service_number: e.target.value })}
                     placeholder="e.g. ELR-BZA-0800 or AP39Z1234"
                     className="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-apsrtc-primary"
+                    required
                   />
                 </div>
 
