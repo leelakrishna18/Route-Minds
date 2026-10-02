@@ -18,10 +18,12 @@ import {
 import { api } from '../services/api';
 import { Stop } from '../types';
 import { useLanguage } from '../context/LanguageContext';
+import { useVoiceAssistant } from '../context/VoiceAssistantContext';
 import { DEFAULT_STOPS } from '../utils/defaultStops';
 
 export const LandingPage: React.FC = () => {
   const { t, language } = useLanguage();
+  const { openAssistant } = useVoiceAssistant();
   const navigate = useNavigate();
 
   const [stops, setStops] = useState<Stop[]>(DEFAULT_STOPS);
@@ -257,12 +259,13 @@ export const LandingPage: React.FC = () => {
                 Speak or type in English or Telugu (తెలుగు) to enquire about bus schedules, emergency features, and grievance registration with spoken audio answers.
               </p>
             </div>
-            <Link
-              to="/assistant"
-              className="inline-flex items-center text-sm font-semibold text-purple-600 hover:text-purple-700"
+            <button
+              type="button"
+              onClick={openAssistant}
+              className="inline-flex items-center text-sm font-semibold text-purple-600 hover:text-purple-700 text-left"
             >
               Start conversation <ArrowRight className="w-4 h-4 ml-1" />
-            </Link>
+            </button>
           </div>
 
           {/* Card 6: Transparency & Depot Verification */}

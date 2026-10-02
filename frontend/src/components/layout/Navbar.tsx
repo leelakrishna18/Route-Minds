@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../context/LanguageContext';
+import { useVoiceAssistant } from '../../context/VoiceAssistantContext';
 import {
   Bus,
   Shield,
@@ -22,6 +23,7 @@ import { ApsrtcLogo } from '../common/ApsrtcLogo';
 export const Navbar: React.FC = () => {
   const { user, isAuthenticated, isAdmin, logout } = useAuth();
   const { language, setLanguage, t } = useLanguage();
+  const { openAssistant } = useVoiceAssistant();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
@@ -122,15 +124,14 @@ export const Navbar: React.FC = () => {
               {t('smsRoute')}
             </Link>
 
-            <Link
-              to="/assistant"
-              className={`flex items-center px-3 py-2 rounded-md text-sm font-medium transition ${
-                isActive('/assistant') ? 'bg-purple-50 text-purple-700 font-semibold' : 'text-slate-700 hover:bg-slate-100'
-              }`}
+            <button
+              type="button"
+              onClick={openAssistant}
+              className="flex items-center px-3 py-1.5 rounded-lg text-sm font-semibold transition bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 shadow-2xs"
             >
-              <Mic className="w-4 h-4 mr-1.5 text-purple-600" />
-              {t('voiceAssistant')}
-            </Link>
+              <Mic className="w-4 h-4 mr-1.5 text-purple-600 animate-pulse" />
+              <span>{t('voiceAssistant')}</span>
+            </button>
           </nav>
 
           {/* User profile / Auth buttons */}
@@ -176,14 +177,6 @@ export const Navbar: React.FC = () => {
                   className="bg-apsrtc-primary hover:bg-apsrtc-primaryDark text-white px-3.5 py-1.5 rounded-lg text-sm font-semibold shadow-sm transition"
                 >
                   {t('register')}
-                </Link>
-
-                <Link
-                  to="/admin/login"
-                  className="text-xs text-slate-400 hover:text-slate-600 p-1.5 rounded"
-                  title="Admin Portal Login"
-                >
-                  <Lock className="w-3.5 h-3.5" />
                 </Link>
               </div>
             )}
@@ -240,14 +233,17 @@ export const Navbar: React.FC = () => {
             {t('smsRoute')}
           </Link>
 
-          <Link
-            to="/assistant"
-            onClick={() => setMobileMenuOpen(false)}
-            className="flex items-center px-3 py-2.5 rounded-md text-base font-medium text-slate-800 hover:bg-purple-50"
+          <button
+            type="button"
+            onClick={() => {
+              setMobileMenuOpen(false);
+              openAssistant();
+            }}
+            className="flex items-center w-full px-3 py-2.5 rounded-md text-base font-medium text-purple-700 hover:bg-purple-50"
           >
-            <Mic className="w-5 h-5 mr-3 text-purple-600" />
-            {t('voiceAssistant')}
-          </Link>
+            <Mic className="w-5 h-5 mr-3 text-purple-600 animate-pulse" />
+            <span>{t('voiceAssistant')}</span>
+          </button>
 
           <div className="border-t border-slate-200 pt-3">
             {isAuthenticated ? (

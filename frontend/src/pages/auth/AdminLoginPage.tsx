@@ -117,10 +117,8 @@ export const AdminLoginPage: React.FC = () => {
           </button>
         </form>
 
-        <div className="mt-6 bg-slate-900/60 p-3 rounded-lg text-[11px] text-slate-400 border border-slate-700/60">
-          <span className="font-semibold text-slate-300">Initial Setup Admin Credentials:</span><br />
-          Email: <code className="text-blue-400 font-mono">admin@apsrtc.ap.gov.in</code><br />
-          Password: <code className="text-blue-400 font-mono">ApsrtcAdmin@2026#Secure</code>
+        <div className="mt-6 text-center text-xs text-slate-500">
+          Authorized APSRTC personnel only. All access attempts are monitored and logged.
         </div>
       </div>
     </div>

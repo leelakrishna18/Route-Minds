@@ -21,43 +21,47 @@ import { SharedLocationViewPage } from './pages/safety/SharedLocationViewPage';
 import { SubmitComplaintPage } from './pages/complaints/SubmitComplaintPage';
 import { TrackComplaintPage } from './pages/complaints/TrackComplaintPage';
 import { SmsServicePage } from './pages/sms/SmsServicePage';
-import { VoiceAssistantPage } from './pages/assistant/VoiceAssistantPage';
 import { PassengerProfilePage } from './pages/profile/PassengerProfilePage';
 import { AdminTimetablePage } from './pages/admin/AdminTimetablePage';
 import { AdminComplaintsPage } from './pages/admin/AdminComplaintsPage';
 import { AdminRouteCodesPage } from './pages/admin/AdminRouteCodesPage';
+import { AdminUsersPage } from './pages/admin/AdminUsersPage';
 import { PrivacyPolicyPage } from './pages/legal/PrivacyPolicyPage';
 import { TermsPage } from './pages/legal/TermsPage';
 import { NotFoundPage } from './pages/legal/NotFoundPage';
+import { VoiceAssistantProvider } from './context/VoiceAssistantContext';
+import { WelcomeGate } from './components/common/WelcomeGate';
 
 export function App() {
   return (
     <BrowserRouter>
       <LanguageProvider>
         <AuthProvider>
-          <div className="flex flex-col min-h-screen">
-            <Navbar />
-            <main className="flex-grow">
-              <Routes>
-                {/* Public Transit Pages */}
-                <Route path="/" element={<LandingPage />} />
-                <Route path="/schedules" element={<BusScheduleSearchPage />} />
-                <Route path="/schedules/service/:serviceId" element={<BusServiceDetailPage />} />
-                <Route path="/sms" element={<SmsServicePage />} />
-                <Route path="/assistant" element={<VoiceAssistantPage />} />
-                <Route path="/complaints/track" element={<TrackComplaintPage />} />
-                <Route path="/safety/live/:token" element={<SharedLocationViewPage />} />
+          <VoiceAssistantProvider>
+            <WelcomeGate />
+            <div className="flex flex-col min-h-screen">
+              <Navbar />
+              <main className="flex-grow">
+                <Routes>
+                  {/* Public Transit Pages */}
+                  <Route path="/" element={<LandingPage />} />
+                  <Route path="/schedules" element={<BusScheduleSearchPage />} />
+                  <Route path="/schedules/service/:serviceId" element={<BusServiceDetailPage />} />
+                  <Route path="/sms" element={<SmsServicePage />} />
+                  <Route path="/assistant" element={<Navigate to="/" replace />} />
+                  <Route path="/complaints/track" element={<TrackComplaintPage />} />
+                  <Route path="/safety/live/:token" element={<SharedLocationViewPage />} />
 
-                {/* Authentication Pages */}
-                <Route path="/login" element={<LoginPage />} />
-                <Route path="/register" element={<RegisterPage />} />
-                <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-                <Route path="/admin/login" element={<AdminLoginPage />} />
+                  {/* Authentication Pages */}
+                  <Route path="/login" element={<LoginPage />} />
+                  <Route path="/register" element={<RegisterPage />} />
+                  <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+                  <Route path="/admin/login" element={<AdminLoginPage />} />
 
-                {/* Protected Passenger Pages */}
-                <Route
-                  path="/dashboard"
-                  element={
+                  {/* Protected Passenger Pages */}
+                  <Route
+                    path="/dashboard"
+                    element={
                     <ProtectedRoute>
                       <PassengerDashboard />
                     </ProtectedRoute>
@@ -121,6 +125,14 @@ export function App() {
                     </ProtectedRoute>
                   }
                 />
+                <Route
+                  path="/admin/users"
+                  element={
+                    <ProtectedRoute requireAdmin>
+                      <AdminUsersPage />
+                    </ProtectedRoute>
+                  }
+                />
 
                 {/* Legal & Policy Pages */}
                 <Route path="/privacy" element={<PrivacyPolicyPage />} />
@@ -132,9 +144,10 @@ export function App() {
             </main>
             <Footer />
           </div>
-        </AuthProvider>
-      </LanguageProvider>
-    </BrowserRouter>
+        </VoiceAssistantProvider>
+      </AuthProvider>
+    </LanguageProvider>
+  </BrowserRouter>
   );
 }
 

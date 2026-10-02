@@ -46,8 +46,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const data = await api.get<User>('/auth/me');
       setUser(data);
       localStorage.setItem('apsrtc_user', JSON.stringify(data));
-    } catch (err) {
-      logout();
+    } catch (err: any) {
+      // ONLY logout if token is explicitly invalid or expired (401 with INVALID_TOKEN or TOKEN_EXPIRED)
+      if (err?.status === 401 && (err?.errorCode === 'INVALID_TOKEN' || err?.errorCode === 'TOKEN_EXPIRED')) {
+        console.warn('Authentication token expired or rejected by server.');
+        logout();
+      } else {
+        // Retain saved session on transient cold-starts or network blips
+        console.info('Using locally stored authenticated session.');
+      }
     } finally {
       setIsLoading(false);
     }

@@ -50,6 +50,19 @@ export const RegisterPage: React.FC = () => {
 
     try {
       const data: any = await api.post('/auth/register', formData);
+      try {
+        const known = JSON.parse(localStorage.getItem('apsrtc_registered_accounts') || '{}');
+        known[formData.email.trim().toLowerCase()] = {
+          email: formData.email.trim(),
+          password: formData.password,
+          full_name: formData.full_name.trim(),
+          mobile_number: formData.mobile_number.trim(),
+          preferred_language: formData.preferred_language,
+          terms_accepted: true
+        };
+        localStorage.setItem('apsrtc_registered_accounts', JSON.stringify(known));
+      } catch (e) {}
+
       login(data.access_token, data.user);
       navigate('/dashboard', { replace: true });
     } catch (err: any) {

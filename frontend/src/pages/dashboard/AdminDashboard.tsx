@@ -128,7 +128,7 @@ export const AdminDashboard: React.FC = () => {
         </div>
 
         {/* Action Modules */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           <Link
             to="/admin/timetables"
             className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm hover:border-blue-400 transition flex flex-col justify-between"
@@ -180,6 +180,24 @@ export const AdminDashboard: React.FC = () => {
             </div>
             <span className="text-xs font-bold text-emerald-600 flex items-center mt-4">
               Manage Route Codes <ArrowRight className="w-3.5 h-3.5 ml-1" />
+            </span>
+          </Link>
+
+          <Link
+            to="/admin/users"
+            className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm hover:border-purple-400 transition flex flex-col justify-between"
+          >
+            <div>
+              <div className="w-10 h-10 bg-purple-50 text-purple-600 rounded-lg flex items-center justify-center mb-3">
+                <Users className="w-5 h-5" />
+              </div>
+              <h3 className="font-bold text-slate-900 text-base mb-1">Passenger Directory</h3>
+              <p className="text-xs text-slate-500 leading-relaxed">
+                Inspect registered passengers on the platform, view their contact details, and review grievances per user.
+              </p>
+            </div>
+            <span className="text-xs font-bold text-purple-600 flex items-center mt-4">
+              View Passenger Accounts <ArrowRight className="w-3.5 h-3.5 ml-1" />
             </span>
           </Link>
         </div>

@@ -15,6 +15,39 @@ def get_auth_token():
         return parts[1]
     return None
 
+def get_or_restore_user(payload: dict):
+    user_id = payload.get("sub")
+    if not user_id:
+        return None
+    user = User.query.get(user_id)
+    if not user and payload.get("email"):
+        from app.models.user import PassengerProfile
+        from app.extensions import db
+        user = User.query.filter_by(email=payload["email"]).first()
+        if not user:
+            try:
+                user = User(
+                    id=user_id,
+                    email=payload["email"],
+                    mobile_number=payload.get("mobile", "9999999999"),
+                    password_hash=payload.get("pw_hash", ""),
+                    role=payload.get("role", "passenger"),
+                    is_active=True
+                )
+                db.session.add(user)
+                db.session.flush()
+                profile = PassengerProfile(
+                    user_id=user.id,
+                    full_name=payload.get("name", "Passenger"),
+                    preferred_language="en"
+                )
+                db.session.add(profile)
+                db.session.commit()
+            except Exception:
+                db.session.rollback()
+                user = User.query.filter_by(email=payload["email"]).first()
+    return user
+
 def jwt_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
@@ -23,7 +56,7 @@ def jwt_required(f):
             return error_response("Authentication token is missing. Please log in.", "UNAUTHORIZED", status_code=401)
         try:
             payload = decode_token(token)
-            user = User.query.get(payload["sub"])
+            user = get_or_restore_user(payload)
             if not user or not user.is_active:
                 return error_response("Account inactive or not found.", "UNAUTHORIZED", status_code=401)
             g.current_user = user
@@ -43,7 +76,7 @@ def roles_required(allowed_roles):
                 return error_response("Authentication token is missing.", "UNAUTHORIZED", status_code=401)
             try:
                 payload = decode_token(token)
-                user = User.query.get(payload["sub"])
+                user = get_or_restore_user(payload)
                 if not user or not user.is_active:
                     return error_response("Account inactive or not found.", "UNAUTHORIZED", status_code=401)
                 if user.role not in allowed_roles:
@@ -65,7 +98,7 @@ def optional_jwt(f):
         if token:
             try:
                 payload = decode_token(token)
-                user = User.query.get(payload["sub"])
+                user = get_or_restore_user(payload)
                 if user and user.is_active:
                     g.current_user = user
             except Exception:

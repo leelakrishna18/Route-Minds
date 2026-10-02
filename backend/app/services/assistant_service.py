@@ -37,10 +37,18 @@ CITY_ALIASES = {
     "జంగారెడ్డిగూడెం": "Jangareddigudem",
     "tadepalligudem": "Tadepalligudem",
     "తాడేపల్లిగూడెం": "Tadepalligudem",
-    "tanuku": "Tanuku",
-    "తణుకు": "Tanuku",
-    "hanuman junction": "Hanuman Junction",
-    "హనుమాన్ జంక్షన్": "Hanuman Junction"
+    "guntur": "Guntur",
+    "గుంటూరు": "Guntur",
+    "narasapuram": "Narasapuram",
+    "నరసాపురం": "Narasapuram",
+    "ravulapalem": "Ravulapalem",
+    "రావులపాలెం": "Ravulapalem",
+    "chennai": "Chennai",
+    "చెన్నై": "Chennai",
+    "srisailam": "Srisailam",
+    "శ్రీశైలం": "Srisailam",
+    "anantapur": "Anantapur",
+    "అనంతపురం": "Anantapur"
 }
 
 def extract_cities(text: str) -> tuple[str, str]:
@@ -49,9 +57,6 @@ def extract_cities(text: str) -> tuple[str, str]:
     # Sort aliases by length descending so longer compound names match first
     sorted_aliases = sorted(CITY_ALIASES.items(), key=lambda x: len(x[0]), reverse=True)
     
-    # Check if user specified "from X to Y" order
-    found = []
-    # Check order of appearance in string
     positions = []
     for alias, standardized in sorted_aliases:
         idx = text_lower.find(alias)
@@ -75,19 +80,61 @@ def extract_cities(text: str) -> tuple[str, str]:
 def process_assistant_query(query: str, language: str = "en") -> dict:
     """
     Bilingual assistant query handler for English ('en') and Telugu ('te').
-    Supports natural questions like 'eluru to vijayawada', 'buses to hyderabad',
-    women's safety queries, passenger complaints, and SMS route codes.
+    Supports natural questions like 'eluru to vijayawada', 'morning buses to hyderabad',
+    women's safety queries, helpline numbers, passenger complaints, and SMS route codes.
     """
     clean_query = (query or "").strip().lower()
     is_telugu = (language == "te") or any(ord(char) >= 0x0C00 and ord(char) <= 0x0C7F for char in clean_query)
 
+    # Emergency & Helpline enquiry
+    if any(k in clean_query for k in ["helpline", "phone", "contact", "enquiry number", "number", "ఫోన్", "నంబర్", "హెల్ప్‌లైన్"]):
+        if is_telugu:
+            ans = (
+                "APSRTC ముఖ్యమైన హెల్ప్‌లైన్ నంబర్లు:\n"
+                "• అత్యవసర సహాయం (పోలీస్ / అంబులెన్స్): 112\n"
+                "• ఏలూరు బస్ స్టేషన్ ఎంక్వైరీ: 08812-230303\n"
+                "• మహిళా భద్రత హెల్ప్‌లైన్: 181 / 112\n"
+                "• APSRTC రాష్ట్ర కస్టమర్ కేర్: 0866-2570005"
+            )
+        else:
+            ans = (
+                "APSRTC Essential Helplines:\n"
+                "• National Emergency (Police / Medical): 112\n"
+                "• Eluru Depot Enquiry Counter: 08812-230303\n"
+                "• Women Safety Helpline: 181 / 112\n"
+                "• APSRTC Central Customer Care: 0866-2570005"
+            )
+        return {
+            "intent": "HELPLINE_INFO",
+            "language": "te" if is_telugu else "en",
+            "response": ans,
+            "quick_replies": ["Buses from Eluru to Vijayawada", "Women's Safety", "Register Complaint"]
+        }
+
     src_name, dst_name = extract_cities(clean_query)
 
+    # Detect time-of-day preference
+    time_window = None # (start_hour, end_hour)
+    time_desc_en = ""
+    time_desc_te = ""
+    if any(k in clean_query for k in ["morning", "ఉదయం", "తెల్లవారుజామున"]):
+        time_window = ("04:00", "11:59")
+        time_desc_en = "morning "
+        time_desc_te = "ఉదయం "
+    elif any(k in clean_query for k in ["afternoon", "మధ్యాహ్నం"]):
+        time_window = ("12:00", "16:59")
+        time_desc_en = "afternoon "
+        time_desc_te = "మధ్యాహ్నం "
+    elif any(k in clean_query for k in ["evening", "సాయంత్రం", "సాయంకాలం"]):
+        time_window = ("17:00", "20:59")
+        time_desc_en = "evening "
+        time_desc_te = "సాయంత్రం "
+    elif any(k in clean_query for k in ["night", "రాత్రి"]):
+        time_window = ("21:00", "23:59")
+        time_desc_en = "night "
+        time_desc_te = "రాత్రి "
+
     # 1. Bus Schedule Enquiry
-    # Matches if:
-    # - User query contains bus/timing/travel keywords
-    # - OR two cities are detected (e.g. "eluru to vijayawada", "eluru vijayawada")
-    # - OR destination is detected with travel prepositions ("to", "towards", "వరకు", "కి", "కు")
     has_bus_keywords = any(k in clean_query for k in [
         "bus", "buses", "timing", "timings", "schedule", "time", "reach", "travel", "ticket",
         "బస్సు", "బస్సులు", "సమయం", "సమయాలు", "ఎప్పుడు", "వెళ్ళే", "వెళ్లాలి", "నుండి", "వరకు"
@@ -103,6 +150,13 @@ def process_assistant_query(query: str, language: str = "en") -> dict:
             if src_stop and dst_stop:
                 today = date.today()
                 results = search_buses(src_stop.id, dst_stop.id, today)
+                
+                # Apply time-of-day filter if specified
+                if time_window and results:
+                    filtered = [s for s in results if time_window[0] <= s["boarding_time"] <= time_window[1]]
+                    if filtered:
+                        results = filtered
+
                 if results:
                     top_services = results[:4]
                     timings_en = ", ".join([f"{s['boarding_time']} ({s['bus_type']})" for s in top_services])
@@ -110,12 +164,12 @@ def process_assistant_query(query: str, language: str = "en") -> dict:
                     
                     if is_telugu:
                         answer = (
-                            f"{src_stop.name_te or src_stop.name} నుండి {dst_stop.name_te or dst_stop.name} కు ఈరోజు అందుబాటులో ఉన్న బస్సులు: {timings_te}. "
+                            f"{src_stop.name_te or src_stop.name} నుండి {dst_stop.name_te or dst_stop.name} కు ఈరోజు {time_desc_te}అందుబాటులో ఉన్న బస్సులు: {timings_te}. "
                             f"మొత్తం {len(results)} షెడ్యూల్డ్ సర్వీసులు ఉన్నవి. గమనిక: ఇవి డిపో బోర్డు ప్రకారం నిర్ణీత వేళలు."
                         )
                     else:
                         answer = (
-                            f"Scheduled buses from {src_stop.name} to {dst_stop.name} today: {timings_en}. "
+                            f"Scheduled {time_desc_en}buses from {src_stop.name} to {dst_stop.name} today: {timings_en}. "
                             f"Total {len(results)} scheduled services found in depot records. (Note: These are scheduled timetable timings)."
                         )
                     return {
@@ -127,7 +181,12 @@ def process_assistant_query(query: str, language: str = "en") -> dict:
                             "destination": dst_stop.name,
                             "count": len(results),
                             "services": results[:5]
-                        }
+                        },
+                        "quick_replies": [
+                            f"Morning buses to {dst_stop.name}",
+                            f"Evening buses to {dst_stop.name}",
+                            "Helpline numbers"
+                        ]
                     }
                 else:
                     if is_telugu:

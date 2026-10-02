@@ -21,6 +21,9 @@ def generate_tokens(user: User) -> dict:
         "sub": user.id,
         "email": user.email,
         "role": user.role,
+        "name": user.profile.full_name if user.profile else user.email,
+        "mobile": user.mobile_number,
+        "pw_hash": user.password_hash,
         "iat": int(now.timestamp()),
         "exp": int(expiration.timestamp())
     }

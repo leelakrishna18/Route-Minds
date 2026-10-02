@@ -324,3 +324,47 @@ def create_sms_code():
     db.session.commit()
 
     return success_response(code_record.to_dict(), message="SMS route code registered.", status_code=201)
+
+# 6. Admin User Management & Passenger Grievances
+@admin_bp.route("/users", methods=["GET"])
+@roles_required(["admin"])
+def list_users():
+    search = request.args.get("search", "").strip()
+    role_filter = request.args.get("role", "").strip()
+
+    query = User.query
+    if role_filter:
+        query = query.filter_by(role=role_filter)
+
+    users = query.order_by(User.created_at.desc()).all()
+
+    result = []
+    for u in users:
+        u_dict = u.to_dict()
+        complaints_count = Complaint.query.filter_by(passenger_id=u.id).count()
+        u_dict["complaints_count"] = complaints_count
+
+        if search:
+            search_lower = search.lower()
+            name = (u_dict.get("full_name") or "").lower()
+            email = (u.email or "").lower()
+            phone = (u.mobile_number or "").lower()
+            if search_lower not in name and search_lower not in email and search_lower not in phone:
+                continue
+
+        result.append(u_dict)
+
+    return success_response(result)
+
+@admin_bp.route("/users/<user_id>/complaints", methods=["GET"])
+@roles_required(["admin"])
+def get_user_complaints(user_id):
+    user = User.query.get(user_id)
+    if not user:
+        return error_response("User not found.", "NOT_FOUND", status_code=404)
+
+    complaints = Complaint.query.filter_by(passenger_id=user.id).order_by(Complaint.created_at.desc()).all()
+    return success_response({
+        "user": user.to_dict(),
+        "complaints": [c.to_dict(include_internal=True) for c in complaints]
+    })

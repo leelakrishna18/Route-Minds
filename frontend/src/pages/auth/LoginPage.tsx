@@ -24,10 +24,29 @@ export const LoginPage: React.FC = () => {
     setIsLoading(true);
 
     try {
-      const data: any = await api.post('/auth/login', {
-        identifier,
-        password
-      });
+      let data: any;
+      try {
+        data = await api.post('/auth/login', {
+          identifier: identifier.trim(),
+          password
+        });
+      } catch (loginErr: any) {
+        // If server cold-started without user in ephemeral sqlite, check if we have a known registered account locally
+        const knownAccounts = JSON.parse(localStorage.getItem('apsrtc_registered_accounts') || '{}');
+        const candidate = knownAccounts[identifier.trim().toLowerCase()] ||
+          Object.values(knownAccounts).find((a: any) => a.mobile_number === identifier.trim());
+
+        if (candidate && candidate.password === password) {
+          // Re-seed user to the active backend instance seamlessly
+          await api.post('/auth/register', candidate);
+          data = await api.post('/auth/login', {
+            identifier: identifier.trim(),
+            password
+          });
+        } else {
+          throw loginErr;
+        }
+      }
 
       login(data.access_token, data.user);
       const from = (location.state as any)?.from?.pathname || (data.user.role === 'admin' ? '/admin/dashboard' : '/dashboard');
