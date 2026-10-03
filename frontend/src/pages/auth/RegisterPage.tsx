@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Eye, EyeOff, UserPlus, AlertCircle, CheckCircle } from 'lucide-react';
+import { Eye, EyeOff, UserPlus, AlertCircle, CheckCircle, X } from 'lucide-react';
 import { api, ApiError } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import { ApsrtcLogo } from '../../components/common/ApsrtcLogo';
@@ -24,6 +24,7 @@ export const RegisterPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [mobileError, setMobileError] = useState<string | null>(null);
   const [mobileTouched, setMobileTouched] = useState(false);
+  const [showPopupAlert, setShowPopupAlert] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
@@ -34,6 +35,17 @@ export const RegisterPage: React.FC = () => {
     }));
   };
 
+  const handleMobileKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    const input = e.currentTarget;
+    const hasSelection = (input.selectionEnd ?? 0) - (input.selectionStart ?? 0) > 0;
+
+    if (/^\d$/.test(e.key) && formData.mobile_number.length >= 10 && !hasSelection) {
+      e.preventDefault();
+      setShowPopupAlert(true);
+      setMobileError('Please enter a valid 10-digit mobile number. Do not enter more than 10 digits.');
+    }
+  };
+
   const handleMobileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const rawValue = e.target.value;
     const digitsOnly = rawValue.replace(/\D/g, '');
@@ -41,7 +53,8 @@ export const RegisterPage: React.FC = () => {
     if (digitsOnly.length > 10) {
       const truncated = digitsOnly.slice(0, 10);
       setFormData(prev => ({ ...prev, mobile_number: truncated }));
-      setMobileError('Mobile number cannot exceed 10 digits.');
+      setShowPopupAlert(true);
+      setMobileError('Please enter a valid 10-digit mobile number. Do not enter more than 10 digits.');
       return;
     }
 
@@ -49,10 +62,12 @@ export const RegisterPage: React.FC = () => {
 
     if (digitsOnly.length === 10) {
       setMobileError(null);
+      setShowPopupAlert(false);
     } else if (mobileTouched) {
       setMobileError('10 digits are required.');
-    } else if (mobileError && mobileError.includes('exceed')) {
+    } else if (mobileError && mobileError.includes('10-digit')) {
       setMobileError(null);
+      setShowPopupAlert(false);
     }
   };
 
@@ -72,11 +87,13 @@ export const RegisterPage: React.FC = () => {
     if (digitsOnly.length > 10) {
       const truncated = digitsOnly.slice(0, 10);
       setFormData(prev => ({ ...prev, mobile_number: truncated }));
-      setMobileError('Mobile number cannot exceed 10 digits.');
+      setShowPopupAlert(true);
+      setMobileError('Please enter a valid 10-digit mobile number. Do not enter more than 10 digits.');
     } else {
       setFormData(prev => ({ ...prev, mobile_number: digitsOnly }));
       if (digitsOnly.length === 10) {
         setMobileError(null);
+        setShowPopupAlert(false);
       } else if (mobileTouched) {
         setMobileError('10 digits are required.');
       }
@@ -134,7 +151,30 @@ export const RegisterPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-slate-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 relative">
+      {/* Red Pop-up Alert Message */}
+      {showPopupAlert && (
+        <div 
+          role="alert"
+          className="fixed top-5 left-1/2 -translate-x-1/2 z-50 max-w-md w-11/12 bg-red-600 text-white px-4 py-3.5 rounded-xl shadow-2xl flex items-center justify-between space-x-3 border-2 border-red-700 transition-all duration-300 animate-in fade-in slide-in-from-top-4"
+        >
+          <div className="flex items-center space-x-2.5">
+            <AlertCircle className="w-5 h-5 flex-shrink-0 text-white" />
+            <p className="text-xs sm:text-sm font-semibold tracking-tight">
+              Please enter a valid 10-digit mobile number. Do not enter more than 10 digits.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setShowPopupAlert(false)}
+            className="text-white/80 hover:text-white hover:bg-red-700/50 rounded-lg p-1 transition flex-shrink-0"
+            title="Dismiss alert"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+
       <div className="max-w-md w-full bg-white rounded-2xl p-8 shadow-sm border border-slate-200">
         <div className="text-center mb-6">
           <div className="flex justify-center mb-2">
@@ -189,10 +229,11 @@ export const RegisterPage: React.FC = () => {
                 name="mobile_number"
                 value={formData.mobile_number}
                 onChange={handleMobileChange}
+                onKeyDown={handleMobileKeyDown}
                 onBlur={handleMobileBlur}
                 onPaste={handleMobilePaste}
                 placeholder="9848012345"
-                maxLength={10}
+                maxLength={15}
                 className={`w-full bg-slate-50 border rounded-r-lg px-3.5 py-2 text-sm focus:outline-none focus:ring-2 font-mono ${
                   mobileError ? 'border-rose-400 focus:ring-rose-500 bg-rose-50/20' : 'border-slate-300 focus:ring-blue-600'
                 }`}
