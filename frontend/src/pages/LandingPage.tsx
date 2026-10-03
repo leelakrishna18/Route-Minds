@@ -20,6 +20,7 @@ import { Stop } from '../types';
 import { useLanguage } from '../context/LanguageContext';
 import { useVoiceAssistant } from '../context/VoiceAssistantContext';
 import { DEFAULT_STOPS } from '../utils/defaultStops';
+import { SearchableDestinationSelect } from '../components/common/SearchableDestinationSelect';
 
 export const LandingPage: React.FC = () => {
   const { t, language } = useLanguage();
@@ -99,20 +100,14 @@ export const LandingPage: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">{t('to')}</label>
-                <select
-                  value={destStopId}
-                  onChange={(e) => setDestStopId(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2.5 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600"
+                <SearchableDestinationSelect
+                  label={t('to')}
+                  stops={destinationStops}
+                  selectedStopId={destStopId}
+                  onSelectStop={(stop) => setDestStopId(stop ? stop.id : '')}
+                  placeholder="Type destination..."
                   required
-                >
-                  <option value="">Select destination...</option>
-                  {destinationStops.map(s => (
-                    <option key={s.id} value={s.id}>
-                      {s.name} {s.name_te ? `(${s.name_te})` : ''}
-                    </option>
-                  ))}
-                </select>
+                />
               </div>
 
               <div>

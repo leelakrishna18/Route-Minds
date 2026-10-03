@@ -22,6 +22,8 @@ export const RegisterPage: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [mobileError, setMobileError] = useState<string | null>(null);
+  const [mobileTouched, setMobileTouched] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
@@ -32,9 +34,64 @@ export const RegisterPage: React.FC = () => {
     }));
   };
 
+  const handleMobileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const rawValue = e.target.value;
+    const digitsOnly = rawValue.replace(/\D/g, '');
+
+    if (digitsOnly.length > 10) {
+      const truncated = digitsOnly.slice(0, 10);
+      setFormData(prev => ({ ...prev, mobile_number: truncated }));
+      setMobileError('Mobile number cannot exceed 10 digits.');
+      return;
+    }
+
+    setFormData(prev => ({ ...prev, mobile_number: digitsOnly }));
+
+    if (digitsOnly.length === 10) {
+      setMobileError(null);
+    } else if (mobileTouched) {
+      setMobileError('10 digits are required.');
+    } else if (mobileError && mobileError.includes('exceed')) {
+      setMobileError(null);
+    }
+  };
+
+  const handleMobileBlur = () => {
+    setMobileTouched(true);
+    if (formData.mobile_number.length !== 10) {
+      setMobileError('10 digits are required.');
+    } else {
+      setMobileError(null);
+    }
+  };
+
+  const handleMobilePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
+    e.preventDefault();
+    const pasteData = e.clipboardData.getData('text');
+    const digitsOnly = pasteData.replace(/\D/g, '');
+    if (digitsOnly.length > 10) {
+      const truncated = digitsOnly.slice(0, 10);
+      setFormData(prev => ({ ...prev, mobile_number: truncated }));
+      setMobileError('Mobile number cannot exceed 10 digits.');
+    } else {
+      setFormData(prev => ({ ...prev, mobile_number: digitsOnly }));
+      if (digitsOnly.length === 10) {
+        setMobileError(null);
+      } else if (mobileTouched) {
+        setMobileError('10 digits are required.');
+      }
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+
+    if (formData.mobile_number.length !== 10) {
+      setMobileTouched(true);
+      setMobileError('10 digits are required.');
+      return;
+    }
 
     if (formData.password !== formData.confirm_password) {
       setError('Passwords do not match.');
@@ -131,13 +188,23 @@ export const RegisterPage: React.FC = () => {
                 type="tel"
                 name="mobile_number"
                 value={formData.mobile_number}
-                onChange={handleChange}
+                onChange={handleMobileChange}
+                onBlur={handleMobileBlur}
+                onPaste={handleMobilePaste}
                 placeholder="9848012345"
                 maxLength={10}
-                className="w-full bg-slate-50 border border-slate-300 rounded-r-lg px-3.5 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 font-mono"
+                className={`w-full bg-slate-50 border rounded-r-lg px-3.5 py-2 text-sm focus:outline-none focus:ring-2 font-mono ${
+                  mobileError ? 'border-rose-400 focus:ring-rose-500 bg-rose-50/20' : 'border-slate-300 focus:ring-blue-600'
+                }`}
                 required
               />
             </div>
+            {mobileError && (
+              <p className="text-xs text-rose-600 font-medium mt-1.5 flex items-center space-x-1" role="alert">
+                <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
+                <span>{mobileError}</span>
+              </p>
+            )}
           </div>
 
           <div>

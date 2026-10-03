@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { api } from '../../services/api';
 import { AssistantMessage } from '../../types';
+import { classifyLocalIntent } from '../../utils/assistantIntents';
 
 export const VoiceAssistantPage: React.FC = () => {
   const [language, setLanguage] = useState<'en' | 'te'>('en');
@@ -239,6 +240,23 @@ export const VoiceAssistantPage: React.FC = () => {
 
     setMessages(prev => [...prev, userMsg]);
     setInputText('');
+
+    // Fast local intent check to avoid unnecessary backend calls for casual / unrelated queries
+    const localResult = classifyLocalIntent(text, language);
+    if (localResult) {
+      const botMsgId = (Date.now() + 1).toString();
+      const botMsg: AssistantMessage = {
+        id: botMsgId,
+        sender: 'assistant',
+        text: localResult.response,
+        intent: localResult.intent,
+        timestamp: new Date().toLocaleTimeString()
+      };
+      setMessages(prev => [...prev, botMsg]);
+      speakText(localResult.response, botMsgId);
+      return;
+    }
+
     setLoading(true);
 
     try {

@@ -86,6 +86,58 @@ def process_assistant_query(query: str, language: str = "en") -> dict:
     clean_query = (query or "").strip().lower()
     is_telugu = (language == "te") or any(ord(char) >= 0x0C00 and ord(char) <= 0x0C7F for char in clean_query)
 
+    # 1. Route Minds Platform enquiry
+    if any(k in clean_query for k in ["route minds", "routeminds", "what is route minds", "about route minds", "what is this platform", "what is this app", "what is this website", "రూట్ మైండ్స్"]):
+        if is_telugu:
+            ans = "రూట్ మైండ్స్ అనేది ప్రయాణీకుల సమాచార వేదిక, ఇది వినియోగదారులకు బస్సు సమాచారం మరియు ప్రయాణీకుల సేవలను సులభంగా పొందేందుకు సహాయపడుతుంది."
+        else:
+            ans = "Route Minds is a passenger information platform that helps users access bus information and passenger services more easily."
+        return {
+            "intent": "PLATFORM_INFO",
+            "language": "te" if is_telugu else "en",
+            "response": ans,
+            "quick_replies": ["Buses from Eluru to Vijayawada", "Women's Safety", "Register Complaint"]
+        }
+
+    # 2. Jokes and casual chit-chat
+    if any(k in clean_query for k in ["joke", "funny", "laugh", "comic", "జోక్", "నవ్వు", "హాస్యం"]):
+        if is_telugu:
+            ans = "నేను ప్రధానంగా మీ బస్సు ప్రయాణం మరియు రూట్ మైండ్స్ సేవల కోసం ఇక్కడ ఉన్నాను. బస్సు రూట్ లేదా సమయాలు తెలుసుకోవడంలో మీకు సహాయం కావాలా?"
+        else:
+            ans = "I'm mainly here to help with your bus travel and Route Minds services. Would you like help finding a bus route or timetable?"
+        return {
+            "intent": "CASUAL_CHITCHAT",
+            "language": "te" if is_telugu else "en",
+            "response": ans,
+            "quick_replies": ["Buses from Eluru to Vijayawada", "Buses to Hyderabad", "Helpline numbers"]
+        }
+
+    # 3. Explicit unrelated categories (cinema, movies, sports, entertainment, actors, weather, etc.)
+    if any(k in clean_query for k in ["cinema", "movie", "film", "song", "songs", "actor", "actress", "hero", "heroine", "cricket", "sports", "football", "weather", "climate", "recipe", "food", "game", "సినిమా", "పాట", "పాటలు", "హీరో", "క్రికెట్"]):
+        if is_telugu:
+            ans = "నేను మీ రూట్ మైండ్స్ ప్రయాణ అసిస్టెంట్ ను. బస్సు రూట్లు, సమయాలు మరియు ప్రయాణీకుల సేవలకు సహాయం చేయడానికి రూపొందించబడ్డాను. మీ ప్రయాణ సమాచారాన్ని కనుగొనడంలో నేను సహాయపడగలను."
+        else:
+            ans = "I'm your Route Minds travel assistant, designed to help with bus routes, timings, and passenger services. I can help you plan your journey or find information about our platform."
+        return {
+            "intent": "UNRELATED_QUERY",
+            "language": "te" if is_telugu else "en",
+            "response": ans,
+            "quick_replies": ["Buses from Eluru to Vijayawada", "Women's Safety", "Register Complaint"]
+        }
+
+    # 4. Ticket Fare enquiry
+    if any(k in clean_query for k in ["fare", "ticket price", "ticket cost", "charges", "ధర", "ఛార్జీ", "టికెట్ ధర"]):
+        if is_telugu:
+            ans = "APSRTC టికెట్ ధరలు బస్సు రకం మరియు దూరాన్ని బట్టి ఉంటాయి: పల్లె వెలుగు, ఎక్స్‌ప్రెస్, సూపర్ లగ్జరీ, మరియు ఇంద్ర ఏసీ. షెడ్యూల్ సెర్చ్‌లో ప్రతి సర్వీసు ఛార్జీ వివరాలు కనిపిస్తాయి."
+        else:
+            ans = "APSRTC fares depend on the service type and distance: Palle Velugu (~₹0.90/km), Express (~₹1.20/km), Super Luxury (~₹1.55/km), and Indra AC (~₹1.90/km). Standard fares are displayed on each service in the schedule search."
+        return {
+            "intent": "FARE_INFO",
+            "language": "te" if is_telugu else "en",
+            "response": ans,
+            "quick_replies": ["Buses from Eluru to Vijayawada", "Buses to Hyderabad"]
+        }
+
     # Emergency & Helpline enquiry
     if any(k in clean_query for k in ["helpline", "phone", "contact", "enquiry number", "number", "ఫోన్", "నంబర్", "హెల్ప్‌లైన్"]):
         if is_telugu:
@@ -252,15 +304,14 @@ def process_assistant_query(query: str, language: str = "en") -> dict:
             )
         return {"intent": "SMS_INFO", "language": "te" if is_telugu else "en", "response": answer}
 
-    # 5. Default Fallback
+    # 5. Unrelated Query Fallback (Polite, short, consistent response instead of default welcome message)
     if is_telugu:
-        answer = (
-            "నమస్కారం! నేను APSRTC స్మార్ట్ అసిస్టెంట్ ను. మీరు నన్ను బస్సుల వేళలు (ఉదా: 'ఏలూరు నుండి విజయవాడ బస్సులు'), "
-            "మహిళా భద్రత, లేదా ఫిర్యాదుల నమోదు గురించి అడగవచ్చు."
-        )
+        answer = "నేను మీ రూట్ మైండ్స్ ప్రయాణ అసిస్టెంట్ ను. బస్సు రూట్లు, సమయాలు మరియు ప్రయాణీకుల సేవలకు సహాయం చేయడానికి రూపొందించబడ్డాను. మీ ప్రయాణ సమాచారాన్ని కనుగొనడంలో నేను సహాయపడగలను."
     else:
-        answer = (
-            "Hello! I am your APSRTC Smart Assistant. You can ask me for bus timings (e.g., 'Buses from Eluru to Vijayawada'), "
-            "women's safety assistance, passenger complaints, or SMS route codes in English or Telugu."
-        )
-    return {"intent": "GENERAL_HELP", "language": "te" if is_telugu else "en", "response": answer}
+        answer = "I'm your Route Minds travel assistant, designed to help with bus routes, timings, and passenger services. I can help you plan your journey or find information about our platform."
+    return {
+        "intent": "UNRELATED_QUERY",
+        "language": "te" if is_telugu else "en",
+        "response": answer,
+        "quick_replies": ["Buses from Eluru to Vijayawada", "Women's Safety", "Register Complaint"]
+    }

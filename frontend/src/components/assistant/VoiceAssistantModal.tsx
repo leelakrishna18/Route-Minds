@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { api } from '../../services/api';
 import { AssistantMessage } from '../../types';
+import { classifyLocalIntent } from '../../utils/assistantIntents';
 
 interface VoiceAssistantModalProps {
   isOpen: boolean;
@@ -245,6 +246,26 @@ export const VoiceAssistantModal: React.FC<VoiceAssistantModalProps> = ({ isOpen
 
     setMessages(prev => [...prev, userMsg]);
     setInputText('');
+
+    // Fast local intent check to avoid unnecessary backend calls for casual / unrelated queries
+    const localResult = classifyLocalIntent(text, language);
+    if (localResult) {
+      const botMsgId = (Date.now() + 1).toString();
+      const botMsg: AssistantMessage = {
+        id: botMsgId,
+        sender: 'assistant',
+        text: localResult.response,
+        intent: localResult.intent,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      };
+      setMessages(prev => [...prev, botMsg]);
+      if (localResult.quickReplies) {
+        setQuickReplies(localResult.quickReplies);
+      }
+      speakText(localResult.response, botMsgId);
+      return;
+    }
+
     setLoading(true);
 
     try {

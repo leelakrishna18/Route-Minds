@@ -17,6 +17,7 @@ import { api } from '../../services/api';
 import { Stop, BusSearchResult } from '../../types';
 import { useLanguage } from '../../context/LanguageContext';
 import { DEFAULT_STOPS } from '../../utils/defaultStops';
+import { SearchableDestinationSelect } from '../../components/common/SearchableDestinationSelect';
 
 export const BusScheduleSearchPage: React.FC = () => {
   const { t } = useLanguage();
@@ -92,6 +93,10 @@ export const BusScheduleSearchPage: React.FC = () => {
 
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!destStopId) {
+      setError('Please select a valid destination from the available list.');
+      return;
+    }
     setSearchParams({
       from: sourceStopId,
       to: destStopId,
@@ -153,20 +158,18 @@ export const BusScheduleSearchPage: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">{t('to')}</label>
-                <select
-                  value={destStopId}
-                  onChange={(e) => setDestStopId(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-apsrtc-primary"
+                <SearchableDestinationSelect
+                  label={t('to')}
+                  stops={destinationStops}
+                  selectedStopId={destStopId}
+                  onSelectStop={(stop) => {
+                    setDestStopId(stop ? stop.id : '');
+                    if (stop && error) setError(null);
+                  }}
+                  placeholder="Type destination (e.g. Vijayawada, Hyderabad)..."
                   required
-                >
-                  <option value="">Select destination...</option>
-                  {destinationStops.map(s => (
-                    <option key={s.id} value={s.id}>
-                      {s.name} {s.name_te ? `(${s.name_te})` : ''}
-                    </option>
-                  ))}
-                </select>
+                  error={error && !destStopId ? error : null}
+                />
               </div>
 
               <div>

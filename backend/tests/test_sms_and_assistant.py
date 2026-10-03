@@ -48,3 +48,35 @@ def test_assistant_safety_info(client):
     })
     assert res.status_code == 200
     assert "112" in res.get_json()["data"]["response"]
+
+def test_assistant_unrelated_query(client):
+    res = client.post("/api/v1/assistant/query", json={
+        "message": "Suggest me the best Telugu cinema.",
+        "language": "en"
+    })
+    assert res.status_code == 200
+    data = res.get_json()["data"]
+    assert data["intent"] == "UNRELATED_QUERY"
+    assert "Route Minds travel assistant" in data["response"]
+    assert "APSRTC Voice Assistant" not in data["response"]
+
+def test_assistant_joke_query(client):
+    res = client.post("/api/v1/assistant/query", json={
+        "message": "Tell me a joke.",
+        "language": "en"
+    })
+    assert res.status_code == 200
+    data = res.get_json()["data"]
+    assert data["intent"] == "CASUAL_CHITCHAT"
+    assert "mainly here to help with your bus travel" in data["response"]
+
+def test_assistant_route_minds_platform_query(client):
+    res = client.post("/api/v1/assistant/query", json={
+        "message": "What is Route Minds?",
+        "language": "en"
+    })
+    assert res.status_code == 200
+    data = res.get_json()["data"]
+    assert data["intent"] == "PLATFORM_INFO"
+    assert "passenger information platform" in data["response"]
+
